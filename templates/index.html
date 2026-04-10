@@ -1,4 +1,3 @@
-
 <style>
   :root {
     --void: #080810;
@@ -254,36 +253,21 @@
         <button class="footer-btn" id="tts-btn" onclick="toggleTTS()" style="flex:1;">Narration: Off</button>
         <button class="footer-btn" id="music-btn" onclick="toggleMusic()" style="flex:1;">Music: Off</button>
       </div>
-      <button class="footer-btn gold" onclick="alert('Generating scene image...')">&#9672; Visualize</button>
+      <button class="footer-btn gold">&#9672; Visualize</button>
       <div class="footer-btn-row">
-        <button class="footer-btn gold" style="flex:1;" onclick="alert('Saving...')">&#8659; Save</button>
-        <button class="footer-btn gold" style="flex:1;" onclick="alert('Loading...')">&#8657; Load</button>
+        <button class="footer-btn gold" style="flex:1;">&#8659; Save</button>
+        <button class="footer-btn gold" style="flex:1;">&#8657; Load</button>
       </div>
     </div>
   </div>
 
-  <div class="panel center-panel" style="border-right:1px solid var(--border);">
+  <div class="panel" style="border-right:1px solid var(--border);">
     <div class="panel-header">
       <span class="dot"></span>
       The Chronicle
       <span style="margin-left:auto;font-size:9px;color:var(--muted);letter-spacing:1px;">turn 14</span>
     </div>
-    <div class="chronicle" id="chronicle">
-      <div class="entry entry-system">— Aeloria. The Docks. The air smells of salt and iron. —</div>
-      <div class="entry entry-assistant">
-        <p>The lanterns along the Docks sway in the harbour wind, casting long amber shadows across wet cobblestone. Gulls cry somewhere above the mist. A merchant's cart has overturned ahead, spilling grain across the road—three men argue in low, urgent voices nearby.</p>
-        <p>Your coat is damp. The letter from Lyssa sits heavy against your chest. <strong>The Leyline hums faintly beneath your feet.</strong></p>
-      </div>
-      <hr class="entry-divider">
-      <div class="entry entry-warden"><strong>Warden:</strong> I approach the arguing men and listen to what they say.</div>
-      <div class="entry entry-assistant">
-        <p>You drift closer, keeping your hood drawn. One of the men—broad-shouldered, a dockworker by the look of his hands—jabs a finger into the chest of another.</p>
-        <p><em>"Three crates gone. Not spilled—gone. Someone moved them before the cart turned."</em></p>
-        <p>The third man, quieter, glances at you once. His eyes don't linger.</p>
-      </div>
-      <hr class="entry-divider">
-      <div class="entry entry-system">[ Fracture reset. The Leyline is still. ]</div>
-    </div>
+    <div class="chronicle" id="chronicle"></div>
     <div class="input-zone">
       <div class="input-row">
         <textarea class="input-area" id="action-input" placeholder="What do you do?"></textarea>
