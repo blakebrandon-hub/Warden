@@ -1,448 +1,1948 @@
-<style>
-  :root {
-    --void: #080810;
-    --stone: #0f0f1a;
-    --slate: #161625;
-    --border: rgba(120,110,180,0.18);
-    --border-bright: rgba(160,145,220,0.35);
-    --gold: #c9a86c;
-    --gold-dim: #7a5f35;
-    --silver: #9ba8c0;
-    --teal: #4a9e8a;
-    --teal-dim: #1f4a42;
-    --crimson: #8b3535;
-    --crimson-bright: #c44a4a;
-    --blue-text: #7eb8e8;
-    --muted: #5a5878;
-    --soft: #bbb8d4;
-    --font-serif: Georgia, 'Times New Roman', serif;
-    --font-mono: 'Courier New', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--void); color: var(--soft); font-family: var(--font-mono); }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warden</title>
+    <style>
+        /* ─── NEW UI DESIGN TOKENS ─── */
+        :root {
+            --void: #080810;
+            --stone: #0f0f1a;
+            --slate: #161625;
+            --border: rgba(120,110,180,0.18);
+            --border-bright: rgba(160,145,220,0.35);
+            --gold: #c9a86c;
+            --gold-dim: #7a5f35;
+            --silver: #9ba8c0;
+            --teal: #4a9e8a;
+            --teal-dim: #1f4a42;
+            --crimson: #8b3535;
+            --crimson-bright: #c44a4a;
+            --blue-text: #7eb8e8;
+            --muted: #5a5878;
+            --soft: #bbb8d4;
+            --font-serif: Georgia, 'Times New Roman', serif;
+            --font-mono: 'Courier New', monospace;
+            /* Legacy aliases for engine JS */
+            --bg-void: #080810;
+            --bg-stone: #0f0f1a;
+            --border-stone: rgba(120,110,180,0.22);
+            --text-muted: #5a5878;
+            --text-bright: #bbb8d4;
+            --rune-color: #4a9e8a;
+            --alert: #8b3535;
+        }
 
-  .app {
-    display: grid;
-    grid-template-columns: 270px 1fr 260px;
-    height: 600px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .panel { display: flex; flex-direction: column; background: var(--stone); border-right: 1px solid var(--border); overflow: hidden; }
-  .panel:last-child { border-right: none; }
+        body {
+            background: var(--void);
+            color: var(--soft);
+            font-family: var(--font-mono);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
 
-  .panel-header {
-    padding: 10px 14px;
-    background: var(--void);
-    border-bottom: 1px solid var(--border);
-    font-family: var(--font-serif);
-    font-size: 11px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--gold);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .panel-header .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.6; }
+        /* ─── LAYOUT ─── */
+        .layout-container {
+            display: grid;
+            grid-template-columns: 285px 1fr 268px;
+            width: 100%;
+            max-width: 1800px;
+            height: 100%;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
 
-  .tab-row { display: flex; background: var(--void); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .tab-btn {
-    flex: 1; padding: 9px; background: none; border: none;
-    border-bottom: 2px solid transparent;
-    font-family: var(--font-serif); font-size: 10px;
-    text-transform: uppercase; letter-spacing: 2px;
-    color: var(--muted); cursor: pointer; transition: 0.2s;
-  }
-  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(201,168,108,0.05); }
-  .tab-btn:hover:not(.active) { color: var(--soft); }
+        .panel {
+            background: var(--stone);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+        .panel:last-child { border-right: none; }
 
-  .circle-row { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--slate); }
-  .circle-btn {
-    flex: 1; padding: 8px 0; background: none; border: none;
-    border-right: 1px solid var(--border);
-    font-family: var(--font-serif); font-size: 11px;
-    color: var(--muted); cursor: pointer; transition: 0.2s;
-    font-style: italic;
-  }
-  .circle-btn:last-child { border-right: none; }
-  .circle-btn.active { color: var(--gold); background: rgba(201,168,108,0.08); }
+        /* ─── PANEL HEADER ─── */
+        .panel-header {
+            padding: 11px 14px;
+            background: var(--void);
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-serif);
+            font-size: 10px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .panel-header .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.6; }
 
-  .spell-list { flex: 1; overflow-y: auto; padding: 6px; min-height: 0; }
-  .spell-card {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 10px; margin-bottom: 4px;
-    background: var(--void); border: 1px solid var(--border);
-    border-left: 2px solid var(--teal-dim);
-    cursor: pointer; transition: 0.15s;
-  }
-  .spell-card:hover { border-color: var(--border-bright); border-left-color: var(--teal); background: var(--slate); }
-  .spell-card.locked { opacity: 0.3; cursor: default; border-left-color: var(--border); }
-  .spell-card.locked:hover { border-color: var(--border); background: var(--void); }
-  .spell-word { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
-  .spell-name { font-size: 12px; font-weight: 500; color: var(--soft); font-family: var(--font-serif); }
-  .spell-cost { font-size: 9px; color: var(--teal); background: rgba(74,158,138,0.12); padding: 2px 6px; border-radius: 2px; }
+        /* ─── TABS ─── */
+        .tab-nav {
+            display: flex;
+            background: var(--void);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 11px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-family: var(--font-serif);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(201,168,108,0.05); }
+        .tab-btn:hover:not(.active) { color: var(--soft); }
 
-  .alchemy-header { padding: 8px 12px 6px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim); background: var(--void); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .alchemy-list { flex: 0 0 auto; max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.2); }
-  .alchemy-card {
-    padding: 7px 10px; margin-bottom: 4px;
-    background: rgba(141,84,36,0.07); border: 1px solid rgba(141,84,36,0.2);
-    border-left: 2px solid var(--gold-dim);
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; transition: 0.15s;
-  }
-  .alchemy-card:hover { border-left-color: var(--gold); background: rgba(201,168,108,0.1); }
+        /* ─── CIRCLE NAV ─── */
+        .circle-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--slate);
+        }
+        .circle-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            border-right: 1px solid var(--border);
+            color: var(--muted);
+            padding: 9px 0;
+            cursor: pointer;
+            font-family: var(--font-serif);
+            font-size: 11px;
+            font-style: italic;
+            transition: 0.2s;
+        }
+        .circle-btn:last-child { border-right: none; }
+        .circle-btn.active { color: var(--gold); background: rgba(201,168,108,0.08); }
+        .circle-btn:hover { color: var(--soft); }
 
-  .footer-btns { border-top: 1px solid var(--border); padding: 8px; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
-  .footer-btn {
-    width: 100%; padding: 7px; background: var(--void); border: 1px solid var(--border);
-    color: var(--muted); font-family: var(--font-serif); font-size: 10px;
-    text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.2s;
-  }
-  .footer-btn:hover { border-color: var(--border-bright); color: var(--soft); }
-  .footer-btn.gold { border-color: var(--gold-dim); color: var(--gold); }
-  .footer-btn.gold:hover { border-color: var(--gold); background: rgba(201,168,108,0.08); }
-  .footer-btn-row { display: flex; gap: 5px; }
+        /* ─── SPELL CARDS ─── */
+        .spell-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px;
+            min-height: 0;
+        }
+        .spell-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 11px;
+            margin-bottom: 4px;
+            background: var(--void);
+            border: 1px solid var(--border);
+            border-left: 2px solid var(--teal-dim);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .spell-card:hover { border-color: var(--border-bright); border-left-color: var(--teal); background: var(--slate); }
+        .spell-card.locked { opacity: 0.3; cursor: default; border-left-color: var(--border); }
+        .spell-card.locked:hover { border-color: var(--border); background: var(--void); }
+        .spell-word { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+        .spell-name { font-size: 12px; font-weight: 500; color: var(--soft); font-family: var(--font-serif); }
+        .spell-cost { font-size: 9px; color: var(--teal); background: rgba(74,158,138,0.12); padding: 2px 6px; border-radius: 2px; }
 
-  .chronicle {
-    flex: 1; overflow-y: auto; padding: 28px 32px;
-    background: linear-gradient(to bottom, #080810 0%, #0c0c18 100%);
-    min-height: 0;
-  }
-  .entry { margin-bottom: 22px; line-height: 1.85; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-  .entry-assistant { color: var(--blue-text); font-size: 13.5px; }
-  .entry-warden { color: var(--gold); font-size: 13px; }
-  .entry-system { color: var(--teal); font-size: 11px; font-style: italic; opacity: 0.8; }
-  .entry p { margin-bottom: 10px; }
-  .entry strong { color: var(--gold); }
-  .entry em { color: var(--soft); }
-  .entry-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; opacity: 0.5; }
+        /* ─── ALCHEMY ─── */
+        .alchemy-header {
+            padding: 7px 12px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            background: var(--void);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #alchemy-list {
+            flex: 0 0 auto;
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 6px;
+            background: rgba(0,0,0,0.15);
+        }
+        .alchemy-card {
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            background: rgba(141,84,36,0.07);
+            border: 1px solid rgba(141,84,36,0.2);
+            border-left: 2px solid var(--gold-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: 0.15s;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .alchemy-card:hover { border-left-color: var(--gold); background: rgba(201,168,108,0.08); }
+        .alchemy-desc { font-size: 9px; color: var(--muted); font-style: italic; line-height: 1.3; }
 
-  .input-zone {
-    border-top: 1px solid var(--border);
-    background: var(--void);
-    padding: 12px 14px;
-    flex-shrink: 0;
-  }
-  .input-row { display: flex; gap: 8px; }
-  .input-area {
-    flex: 1; background: var(--slate); border: 1px solid var(--border);
-    color: var(--soft); font-family: var(--font-mono); font-size: 12px;
-    padding: 9px 12px; resize: none; outline: none; height: 52px;
-    transition: border-color 0.2s;
-  }
-  .input-area:focus { border-color: var(--border-bright); }
-  .submit-btn {
-    padding: 0 20px; background: rgba(201,168,108,0.08);
-    border: 1px solid var(--gold-dim);
-    color: var(--gold); font-family: var(--font-serif);
-    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-    cursor: pointer; transition: 0.2s; white-space: nowrap;
-  }
-  .submit-btn:hover { background: rgba(201,168,108,0.15); border-color: var(--gold); }
+        /* ─── BESTIARY ─── */
+        #bestiary-container {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow-y: auto;
+            background: var(--stone);
+            padding: 6px;
+            min-height: 0;
+        }
+        .book-entry {
+            background: var(--void);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--crimson);
+            margin-bottom: 8px;
+            padding: 12px;
+            font-family: var(--font-serif);
+            transition: all 0.2s;
+        }
+        .book-entry:hover { border-color: var(--border-bright); border-left-color: var(--crimson-bright); }
+        .book-title { color: var(--gold); font-size: 13px; font-weight: bold; margin-bottom: 3px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        .book-tags { font-family: var(--font-mono); font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .book-content { font-size: 12px; color: var(--soft); line-height: 1.5; font-style: italic; margin-bottom: 8px; }
+        .book-stat { font-size: 11px; margin-top: 4px; }
+        .stat-label { color: var(--muted); font-weight: bold; text-transform: uppercase; font-family: var(--font-mono); font-size: 9px; }
+        .stat-val-weak { color: var(--crimson-bright); }
+        .stat-val-imm { color: var(--teal); }
 
-  .right-panel { overflow-y: auto; }
-  .status-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
-  .status-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+        /* ─── FOOTER BUTTONS ─── */
+        .footer-btns {
+            border-top: 1px solid var(--border);
+            padding: 8px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .footer-btn {
+            width: 100%;
+            padding: 7px;
+            background: var(--void);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-serif);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .footer-btn:hover { border-color: var(--border-bright); color: var(--soft); }
+        .footer-btn.gold { border-color: var(--gold-dim); color: var(--gold); }
+        .footer-btn.gold:hover { border-color: var(--gold); background: rgba(201,168,108,0.08); }
+        .footer-btn-row { display: flex; gap: 5px; }
 
-  .location-box {
-    background: var(--slate); border: 1px solid var(--border);
-    padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
-  }
-  .location-region { font-family: var(--font-serif); font-size: 13px; color: var(--soft); }
-  .location-site { font-size: 11px; color: var(--muted); }
+        /* ─── CENTER CHRONICLE ─── */
+        .center-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .chronicle-log {
+            flex-grow: 1;
+            padding: 36px 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background: linear-gradient(to bottom, #080810 0%, #0c0c18 100%);
+            min-height: 0;
+        }
 
-  .vitality-row { display: flex; gap: 8px; }
-  .vital-box {
-    flex: 1; background: var(--slate); border: 1px solid var(--border);
-    padding: 8px 10px; text-align: center;
-  }
-  .vital-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
-  .vital-val { font-size: 16px; font-weight: 500; font-family: var(--font-serif); }
-  .vital-hp { color: var(--crimson-bright); border-color: rgba(139,53,53,0.3); }
-  .vital-hp .vital-val { color: var(--crimson-bright); }
-  .vital-fracture { color: var(--teal); border-color: rgba(74,158,138,0.25); }
-  .vital-fracture .vital-val { color: var(--teal); }
+        /* ─── CHRONICLE ENTRIES ─── */
+        .entry { margin-bottom: 22px; line-height: 1.85; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .entry-assistant { color: var(--blue-text); font-size: 13.5px; }
+        .entry-warden { color: var(--gold); font-size: 13px; }
+        .entry-system { color: var(--teal); font-size: 11px; font-style: italic; opacity: 0.8; }
+        .entry p { margin-bottom: 10px; color: inherit; }
+        .entry strong { color: var(--gold) !important; font-weight: bold; text-shadow: 0 0 10px rgba(201,168,108,0.4); }
+        .entry em { color: var(--soft); font-style: italic; }
+        .entry-assistant p { margin: 0 0 12px 0; line-height: 1.6; letter-spacing: 0.5px; }
+        .entry-mirror { color: #E0FFFF !important; text-shadow: 0 0 10px rgba(224,255,255,0.8); font-style: italic; letter-spacing: 1px; }
+        .entry-mirror p { color: inherit; }
 
-  .hp-bar-wrap { margin-top: 4px; background: rgba(139,53,53,0.15); height: 3px; border-radius: 1px; overflow: hidden; }
-  .hp-bar { height: 100%; background: var(--crimson-bright); transition: width 0.4s; }
+        /* ─── INPUT BAR ─── */
+        .input-bar {
+            padding: 14px 16px;
+            background: var(--void);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            height: 80px;
+            flex-shrink: 0;
+        }
+        .input-bar textarea {
+            flex-grow: 1;
+            background: var(--slate);
+            border: 1px solid var(--border);
+            color: var(--soft);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 10px 12px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-bar textarea:focus { border-color: var(--border-bright); }
+        .btn-submit {
+            padding: 0 22px;
+            background: rgba(201,168,108,0.07);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: var(--font-serif);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-submit:hover { background: rgba(201,168,108,0.14); border-color: var(--gold); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .fracture-pips { display: flex; gap: 3px; margin-top: 4px; justify-content: center; }
-  .pip { width: 12px; height: 5px; border-radius: 1px; background: var(--border); transition: 0.3s; }
-  .pip.filled { background: var(--teal); }
+        /* ─── RIGHT PANEL / STATUS ─── */
+        .right-panel { overflow-y: auto; }
 
-  .wealth-row { display: flex; gap: 6px; }
-  .wealth-box {
-    flex: 1; background: var(--slate); border: 1px solid var(--border);
-    padding: 6px 8px; text-align: center;
-  }
-  .wealth-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-  .wealth-val { font-size: 15px; font-family: var(--font-serif); }
-  .w-gold .wealth-label { color: var(--gold-dim); } .w-gold .wealth-val { color: var(--gold); }
-  .w-silver .wealth-label { color: #667; } .w-silver .wealth-val { color: var(--silver); }
-  .w-copper .wealth-label { color: #553; } .w-copper .wealth-val { color: #c87941; }
+        .vigil-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        .vigil-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
 
-  .faction-list { padding: 6px; }
-  .faction-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 7px 10px; margin-bottom: 3px;
-    background: var(--void); border: 1px solid var(--border);
-    border-left: 2px solid transparent; transition: 0.2s;
-  }
-  .faction-row:hover { border-color: var(--border-bright); }
-  .faction-name { font-size: 11px; color: var(--soft); letter-spacing: 0.5px; }
-  .faction-val { font-size: 12px; font-weight: 500; color: var(--muted); }
+        /* Location */
+        .stat-display {
+            background: var(--slate);
+            border: 1px solid var(--border);
+            padding: 9px 12px;
+            color: var(--soft);
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .stat-display.gold-box { border-color: rgba(122,95,53,0.5); }
 
-  .vow-box {
-    margin: 0 14px 14px;
-    background: var(--void); border: 1px solid var(--border);
-    border-left: 2px solid var(--muted); padding: 10px 12px;
-  }
-  .vow-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
-  .vow-obj { font-size: 12px; color: var(--soft); font-family: var(--font-serif); margin-bottom: 4px; }
+        /* Vitality */
+        .vitality-section { display: flex; gap: 8px; }
+        .vitality-box {
+            flex: 1;
+            background: var(--slate);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .vitality-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; display: block; }
+        .vitality-val { font-size: 16px; font-weight: 500; font-family: var(--font-serif); }
+        .hp-box { border-color: rgba(139,53,53,0.45) !important; }
+        .hp-box .vitality-val { color: var(--crimson-bright); }
+        .fracture-box { border-color: rgba(74,158,138,0.35) !important; }
+        .fracture-box .vitality-val { color: var(--teal); }
+        .fracture-warning { border-color: #00e5ff !important; box-shadow: 0 0 10px rgba(0,229,255,0.3); animation: blue-pulse 2s infinite; }
+        .fracture-danger { border-color: #ff3300 !important; box-shadow: 0 0 15px #ff3300; animation: breach-shake 0.2s infinite; }
+        @keyframes blue-pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+        @keyframes breach-shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px,-1px); } 100% { transform: translate(1px,-1px); } }
 
-  .inv-list { padding: 6px; }
-  .inv-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 10px; margin-bottom: 3px;
-    background: var(--void); border: 1px solid var(--border);
-    border-left: 2px solid var(--gold-dim);
-    cursor: pointer; transition: 0.15s; font-size: 11px;
-  }
-  .inv-row:hover { border-left-color: var(--gold); background: var(--slate); }
-  .inv-name { color: var(--soft); }
-  .inv-count { color: var(--gold); font-size: 10px; }
+        /* Wealth */
+        .wealth-row { display: flex; gap: 6px; margin-bottom: 2px; }
+        .wealth-box {
+            flex: 1;
+            background: var(--slate);
+            border: 1px solid var(--border);
+            padding: 7px 8px;
+            text-align: center;
+        }
+        .wealth-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; display: block; }
+        .wealth-val { font-size: 15px; font-family: var(--font-serif); display: block; }
+        .w-gold .wealth-label { color: var(--gold-dim); } .w-gold .wealth-val { color: var(--gold); }
+        .w-silver .wealth-label { color: #556; } .w-silver .wealth-val { color: var(--silver); }
+        .w-copper .wealth-label { color: #553; } .w-copper .wealth-val { color: #c87941; }
 
-  .equip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; }
-  .equip-slot { background: var(--void); border: 1px solid var(--border); padding: 5px 8px; }
-  .equip-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-  .equip-val { font-size: 10px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .equip-empty { color: var(--muted); font-style: italic; }
+        /* Equipment */
+        .equipment-section { padding: 6px; background: var(--void); border-bottom: 1px solid var(--border); max-height: 260px; overflow-y: auto; }
+        .equipment-slot { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: var(--slate); border: 1px solid var(--border); margin-bottom: 3px; }
+        .slot-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; min-width: 65px; }
+        .slot-dropdown {
+            background: var(--void); border: 1px solid var(--border); color: var(--soft);
+            font-family: var(--font-mono); font-size: 11px; padding: 3px 6px;
+            cursor: pointer; flex-grow: 1; transition: all 0.2s;
+        }
+        .slot-dropdown:hover { border-color: var(--gold); }
+        .slot-dropdown option { background: var(--stone); color: var(--soft); }
 
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
-</style>
+        /* Inventory */
+        #inventory-content { padding: 6px; overflow-y: auto; max-height: 200px; }
+        .inventory-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 10px; margin-bottom: 4px;
+            background: var(--void); border: 1px solid var(--border);
+            border-left: 2px solid var(--gold-dim);
+            cursor: pointer; transition: 0.15s; font-size: 11px;
+        }
+        .inventory-item:hover { border-left-color: var(--gold); background: var(--slate); }
+        .item-name { color: var(--soft); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.5px; }
+        .item-count { color: var(--gold); font-size: 10px; }
 
-<div class="app">
+        /* Factions */
+        .faction-list { display: flex; flex-direction: column; padding: 6px; }
+        .faction-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 10px; margin-bottom: 4px;
+            background: var(--void); border: 1px solid var(--border);
+            border-left: 2px solid var(--teal-dim); transition: 0.15s;
+        }
+        .faction-item:hover { border-left-color: var(--teal); }
+        .faction-name { color: var(--soft); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .faction-val { color: var(--soft); font-weight: bold; font-family: var(--font-mono); }
 
-  <div class="panel">
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab('grimoire',this)">Grimoire</button>
-      <button class="tab-btn" onclick="switchTab('bestiary',this)">Bestiary</button>
-    </div>
-    <div id="pane-grimoire" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
-      <div class="circle-row">
-        <button class="circle-btn active" onclick="showCircle(1,this)">I</button>
-        <button class="circle-btn" onclick="showCircle(2,this)">II</button>
-        <button class="circle-btn" onclick="showCircle(3,this)">III</button>
-        <button class="circle-btn" onclick="showCircle(4,this)">IV</button>
-      </div>
-      <div class="spell-list" id="spell-list"></div>
-      <div class="alchemy-header">&#9670; Alchemical Circle</div>
-      <div class="alchemy-list" id="alchemy-list"></div>
-    </div>
-    <div id="pane-bestiary" style="display:none;flex:1;overflow-y:auto;padding:6px;"></div>
-    <div class="footer-btns">
-      <div class="footer-btn-row">
-        <button class="footer-btn" id="tts-btn" onclick="toggleTTS()" style="flex:1;">Narration: Off</button>
-        <button class="footer-btn" id="music-btn" onclick="toggleMusic()" style="flex:1;">Music: Off</button>
-      </div>
-      <button class="footer-btn gold">&#9672; Visualize</button>
-      <div class="footer-btn-row">
-        <button class="footer-btn gold" style="flex:1;">&#8659; Save</button>
-        <button class="footer-btn gold" style="flex:1;">&#8657; Load</button>
-      </div>
-    </div>
-  </div>
+        /* Vow */
+        .vow-card { background: var(--void); border: 1px solid var(--border); border-left: 2px solid var(--muted); padding: 12px; }
+        .vow-card.active { border-left-color: var(--gold); background: rgba(201,168,108,0.04); }
+        .vow-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .vow-obj { font-size: 12px; color: var(--soft); font-family: var(--font-serif); margin-bottom: 4px; }
+        .vow-pay { font-size: 10px; color: var(--gold); text-align: right; }
 
-  <div class="panel" style="border-right:1px solid var(--border);">
-    <div class="panel-header">
-      <span class="dot"></span>
-      The Chronicle
-      <span style="margin-left:auto;font-size:9px;color:var(--muted);letter-spacing:1px;">turn 14</span>
-    </div>
-    <div class="chronicle" id="chronicle"></div>
-    <div class="input-zone">
-      <div class="input-row">
-        <textarea class="input-area" id="action-input" placeholder="What do you do?"></textarea>
-        <button class="submit-btn" onclick="submitAction()">Submit</button>
-      </div>
-    </div>
-  </div>
+        /* ─── VOID SCREEN ─── */
+        .void-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; color: var(--crimson);
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 2000; opacity: 0; transition: opacity 2s;
+        }
+        .void-text { font-family: var(--font-serif); font-size: 2rem; letter-spacing: 5px; text-transform: uppercase; }
+        .void-sub { color: #444; margin-top: 20px; font-family: monospace; font-size: 0.8rem; }
 
-  <div class="panel right-panel">
-    <div class="panel-header"><span class="dot"></span>Status</div>
-    <div class="status-section">
-      <div class="status-label">Location</div>
-      <div class="location-box">
-        <span class="location-region">Aeloria</span>
-        <span class="location-site">Docks</span>
-      </div>
-    </div>
-    <div class="status-section">
-      <div class="status-label">Vitality</div>
-      <div class="vitality-row">
-        <div class="vital-box vital-hp">
-          <div class="vital-label">Health</div>
-          <div class="vital-val">42/50</div>
-          <div class="hp-bar-wrap"><div class="hp-bar" style="width:84%"></div></div>
+        .hidden { display: none !important; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Archivist entry colour */
+        .entry-archivist { color: #aaa; font-size: 11px; font-style: italic; opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="layout-container" id="main-ui">
+
+    <!-- ═══════════ LEFT PANEL: GRIMOIRE / BESTIARY ═══════════ -->
+    <aside class="panel">
+        <div class="tab-nav">
+            <button id="tab-grimoire" class="tab-btn active" onclick="switchLeftPanel('grimoire')">Grimoire</button>
+            <button id="tab-bestiary" class="tab-btn" onclick="switchLeftPanel('bestiary')">Bestiary</button>
         </div>
-        <div class="vital-box vital-fracture">
-          <div class="vital-label">Fracture</div>
-          <div class="vital-val">1/4</div>
-          <div class="fracture-pips">
-            <div class="pip filled"></div>
-            <div class="pip"></div>
-            <div class="pip"></div>
-            <div class="pip"></div>
-          </div>
+
+        <!-- GRIMOIRE -->
+        <div id="grimoire-container" style="display:flex;flex-direction:column;flex-grow:1;overflow:hidden;min-height:0;">
+            <div class="circle-nav">
+                <button class="circle-btn active" onclick="showCircle(1)">I</button>
+                <button class="circle-btn" onclick="showCircle(2)">II</button>
+                <button class="circle-btn" onclick="showCircle(3)">III</button>
+                <button class="circle-btn" onclick="showCircle(4)">IV</button>
+            </div>
+            <div id="spell-list" class="spell-list"></div>
+
+            <div class="alchemy-header">◆ Alchemical Circle</div>
+            <div id="alchemy-list"></div>
         </div>
-      </div>
-    </div>
-    <div class="status-section">
-      <div class="status-label">Wealth</div>
-      <div class="wealth-row">
-        <div class="wealth-box w-gold"><div class="wealth-label">Gold</div><div class="wealth-val">3</div></div>
-        <div class="wealth-box w-silver"><div class="wealth-label">Silver</div><div class="wealth-val">15</div></div>
-        <div class="wealth-box w-copper"><div class="wealth-label">Copper</div><div class="wealth-val">50</div></div>
-      </div>
-    </div>
-    <div class="panel-header" style="font-size:9px;padding:7px 14px;">&#9670; Equipment</div>
-    <div class="equip-grid">
-      <div class="equip-slot"><div class="equip-label">Main Hand</div><div class="equip-val">Iron Shortsword</div></div>
-      <div class="equip-slot"><div class="equip-label">Off Hand</div><div class="equip-val equip-empty">(Empty)</div></div>
-      <div class="equip-slot"><div class="equip-label">Chest</div><div class="equip-val equip-empty">(Empty)</div></div>
-      <div class="equip-slot"><div class="equip-label">Helm</div><div class="equip-val equip-empty">(Empty)</div></div>
-      <div class="equip-slot"><div class="equip-label">Hands</div><div class="equip-val equip-empty">(Empty)</div></div>
-      <div class="equip-slot"><div class="equip-label">Boots</div><div class="equip-val equip-empty">(Empty)</div></div>
-    </div>
-    <div class="panel-header" style="font-size:9px;padding:7px 14px;">&#9670; Inventory</div>
-    <div class="inv-list">
-      <div class="inv-row"><span class="inv-name">Iron Shortsword</span><span class="inv-count">×1</span></div>
-      <div class="inv-row"><span class="inv-name">Letter from Lyssa</span><span class="inv-count">×1</span></div>
-    </div>
-    <div class="panel-header" style="font-size:9px;padding:7px 14px;">&#9670; Standing</div>
-    <div class="faction-list">
-      <div class="faction-row"><span class="faction-name">Valdris</span><span class="faction-val">0</span></div>
-      <div class="faction-row"><span class="faction-name">Aeloria</span><span class="faction-val">0</span></div>
-      <div class="faction-row"><span class="faction-name">Thornhaven</span><span class="faction-val">0</span></div>
-      <div class="faction-row"><span class="faction-name">Pale Reaches</span><span class="faction-val">0</span></div>
-    </div>
-    <div class="panel-header" style="font-size:9px;padding:7px 14px;">&#9670; The Vow</div>
-    <div class="vow-box">
-      <div class="vow-title">No Oath Sworn</div>
-      <div class="vow-obj" style="color:var(--muted);font-size:11px;font-style:italic;">The spirit is unburdened.</div>
-    </div>
-  </div>
+
+        <!-- BESTIARY -->
+        <div id="bestiary-container"></div>
+
+        <!-- FOOTER -->
+        <div class="footer-btns">
+            <!-- hidden audio -->
+            <div style="display:none;">
+                <audio id="amb-aeloria-1" loop preload="auto"><source src="aeloria-amb1.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-aeloria-2" loop preload="auto"><source src="aeloria-amb2.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-aeloria-3" loop preload="auto"><source src="aeloria-amb3.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-aeloria-1" loop preload="auto"><source src="aeloria-btl1.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-aeloria-2" loop preload="auto"><source src="aeloria-btl2.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-aeloria-3" loop preload="auto"><source src="aeloria-btl3.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-valdris-1" loop preload="auto"><source src="valdris-amb1.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-valdris-2" loop preload="auto"><source src="valdris-amb2.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-valdris-3" loop preload="auto"><source src="valdris-amb3.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-valdris-1" loop preload="auto"><source src="valdris-btl1.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-valdris-2" loop preload="auto"><source src="valdris-btl2.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-valdris-3" loop preload="auto"><source src="valdris-btl3.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-thorn-1" loop preload="auto"><source src="thorn-amb1.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-thorn-2" loop preload="auto"><source src="thorn-amb2.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-thorn-3" loop preload="auto"><source src="thorn-amb3.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-thorn-1" loop preload="auto"><source src="thorn-btl1.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-thorn-2" loop preload="auto"><source src="thorn-btl2.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-thorn-3" loop preload="auto"><source src="thorn-btl3.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-pale-1" loop preload="auto"><source src="pale-amb1.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-pale-2" loop preload="auto"><source src="pale-amb2.mp3" type="audio/mpeg"></audio>
+                <audio id="amb-pale-3" loop preload="auto"><source src="pale-amb3.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-pale-1" loop preload="auto"><source src="pale-btl1.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-pale-2" loop preload="auto"><source src="pale-btl2.mp3" type="audio/mpeg"></audio>
+                <audio id="btl-pale-3" loop preload="auto"><source src="pale-btl3.mp3" type="audio/mpeg"></audio>
+                <audio id="victory-music"><source src="victory.mp3" type="audio/mpeg"></audio>
+            </div>
+
+            <div class="footer-btn-row">
+                <button id="tts-btn" class="footer-btn" onclick="toggleTTS()" style="flex:1;">Narration: Off</button>
+                <button id="music-btn" class="footer-btn" onclick="toggleMusic()" style="flex:1;">Music: Off</button>
+            </div>
+            <button class="footer-btn gold" onclick="generateImage()">◆ Visualize</button>
+            <div class="footer-btn-row">
+                <button class="footer-btn gold" onclick="downloadSave()" style="flex:1;">↓ Save</button>
+                <button class="footer-btn gold" onclick="uploadSave()" style="flex:1;">↑ Load</button>
+            </div>
+            <input type="file" id="save-file-input" style="display:none;" onchange="loadSaveFile(event)" accept=".gws,.json">
+        </div>
+    </aside>
+
+    <!-- ═══════════ CENTER PANEL: CHRONICLE ═══════════ -->
+    <main class="panel center-panel">
+        <div class="panel-header">
+            <span class="dot"></span>
+            The Chronicle
+            <span id="turn-counter" style="margin-left:auto;font-size:9px;color:var(--muted);letter-spacing:1px;">turn 0</span>
+        </div>
+        <div id="chronicle" class="chronicle-log">
+            <div class="entry" style="color:var(--soft);opacity:0.5;font-style:italic;">
+                <p>The Chronicle opens. The ink is wet.</p>
+            </div>
+        </div>
+        <div class="input-bar">
+            <textarea id="action-input" placeholder="What do you do?"></textarea>
+            <button class="btn-submit" onclick="commitAction()">Submit</button>
+        </div>
+    </main>
+
+    <!-- ═══════════ RIGHT PANEL: STATUS ═══════════ -->
+    <aside class="panel right-panel">
+        <div class="panel-header"><span class="dot"></span>Status</div>
+
+        <!-- Location -->
+        <div class="vigil-section">
+            <div class="vigil-label">Location</div>
+            <div class="stat-display">
+                <span id="loc-display">Aeloria</span>
+                <span id="site-display" style="color:var(--muted);">Docks</span>
+            </div>
+        </div>
+
+        <!-- Vitality -->
+        <div class="vigil-section">
+            <div class="vigil-label">Vitality</div>
+            <div class="vitality-section">
+                <div class="vitality-box hp-box">
+                    <span class="vitality-label">Health</span>
+                    <span id="hp-display" class="vitality-val">50/50</span>
+                </div>
+                <div id="fracture-box" class="vitality-box fracture-box">
+                    <span class="vitality-label">Fracture</span>
+                    <span id="fracture-val" class="vitality-val">0/4</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wealth -->
+        <div class="vigil-section">
+            <div class="vigil-label">Wealth</div>
+            <div class="wealth-row">
+                <div class="wealth-box w-gold">
+                    <span class="wealth-label">Gold</span>
+                    <span id="gold-display" class="wealth-val">3</span>
+                </div>
+                <div class="wealth-box w-silver">
+                    <span class="wealth-label">Silver</span>
+                    <span id="silver-display" class="wealth-val">15</span>
+                </div>
+                <div class="wealth-box w-copper">
+                    <span class="wealth-label">Copper</span>
+                    <span id="copper-display" class="wealth-val">50</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipment -->
+        <div class="panel-header" style="font-size:9px;padding:7px 14px;">◆ Equipment</div>
+        <div class="equipment-section" id="equipment-slots"></div>
+
+        <!-- Inventory -->
+        <div class="panel-header" style="font-size:9px;padding:7px 14px;">◆ Inventory</div>
+        <div id="inventory-content"></div>
+
+        <!-- Standing -->
+        <div class="panel-header" style="font-size:9px;padding:7px 14px;">◆ Standing</div>
+        <div class="faction-list">
+            <div class="faction-item"><span class="faction-name">Valdris</span><span class="faction-val" id="fac-Valdris">0</span></div>
+            <div class="faction-item"><span class="faction-name">Aeloria</span><span class="faction-val" id="fac-Aeloria">0</span></div>
+            <div class="faction-item"><span class="faction-name">Thornhaven</span><span class="faction-val" id="fac-Thornhaven">0</span></div>
+            <div class="faction-item"><span class="faction-name">Pale Reaches</span><span class="faction-val" id="fac-PaleReaches">0</span></div>
+        </div>
+
+        <!-- The Vow -->
+        <div class="panel-header" style="font-size:9px;padding:7px 14px;">◆ The Vow</div>
+        <div style="padding:10px 14px 14px;">
+            <div id="vow-container" class="vow-card">
+                <div class="vow-title">No Oath Sworn</div>
+                <div class="vow-obj" style="font-size:11px;color:var(--muted);font-style:italic;">The spirit is unburdened.</div>
+            </div>
+        </div>
+    </aside>
 
 </div>
 
-<script>
-const SPELLS = {
-  1:[{name:"Heal",word:"Ad Vita"},{name:"Bright",word:"Ad Luc"},{name:"Spark",word:"Ig Fac"},{name:"Ice Arrow",word:"Frig Tel"},{name:"Protect",word:"Ob Mal"},{name:"Calm",word:"Pac Cor"},{name:"Strength",word:"Vis Max"},{name:"Shock",word:"Ful Min"}],
-  2:[{name:"Cure",word:"San Ven"},{name:"Dispel",word:"Neg Mag"},{name:"Fireball",word:"Jact Ign"},{name:"Frost Strike",word:"Glac Ful"},{name:"Purifying Light",word:"San Luc"},{name:"Lightning",word:"Mag Ful"},{name:"Stone Hammer",word:"Mur Sol"},{name:"Poison",word:"Ven Nex"}],
-  3:[{name:"Speak with Dead",word:"Mor Loq"},{name:"Fog",word:"Neb Occ"},{name:"Stone Skin",word:"Pel Dur"},{name:"Drain",word:"Abs Mag"},{name:"Reflection",word:"Ref Mag"},{name:"Fear",word:"Terr Mens"},{name:"Haste",word:"Vel Max"},{name:"Bind",word:"Vin Nat"}],
-  4:[{name:"Chain Lightning",word:"Ful Cat"},{name:"Blizzard",word:"Temp Frig"},{name:"Earthquake",word:"Terr Mot"},{name:"Flame Blast",word:"Flam Max"},{name:"Divine Light",word:"Luc Div"},{name:"Invisibility",word:"Occ Cor"},{name:"Divide Self",word:"Div Ego"},{name:"Banish",word:"Pel Ext"}]
-};
-const knownSpells = ["Ad Vita","Ad Luc","Ig Fac","Frig Tel","Ob Mal","Pac Cor","Vis Max","Ful Min"];
-const ALCHEMY = [
-  {name:"Healing Salve",ingredients:["Bloodroot","Lavender","Empty Vial"]},
-  {name:"Night's Sight",ingredients:["Wolfsbane","Bloodroot","Empty Vial"]},
-  {name:"Leyline Amplifier",ingredients:["Silverleaf","Nightshade","Empty Vial"]}
-];
-const BESTIARY = [
-  {name:"Ice Voidling",tags:"Void · Elemental",weak:"Fire",immune:"Cold, Iron, Lesser Magic"},
-  {name:"Grave Walker",tags:"Undead · Risen",weak:"Lightning, Stone Weapons",immune:"Cold, Poison, Fear"},
-  {name:"Noble Vampire",tags:"Vampire · Ancient",weak:"Divine Light, Silver, Decapitation",immune:"—"},
-  {name:"Wraith",tags:"Undead · Spirit",weak:"Light, Radiance, Dispel",immune:"Physical, Cold, Poison"},
-  {name:"Stone Sentinel",tags:"Construct · Guardian",weak:"Lightning, Earthquake",immune:"Fire, Ice, Poison"},
-  {name:"Dark Warden",tags:"The Fallen · Void-Touched",weak:"Steel, Spells, Banishment",immune:"—"},
-  {name:"Wolf",tags:"Beast · Pack",weak:"Fire, Poison, Iron",immune:"—"},
-  {name:"Shadow Voidling",tags:"Void · Shadow",weak:"Radiance, Light",immune:"Darkness, Iron, Poison"}
-];
+<!-- VOID SCREEN -->
+<div id="void-screen" class="void-overlay">
+    <div class="void-text">The Vessel is Broken</div>
+    <div class="void-sub">The Chronicle Ends Here.</div>
+    <button class="btn-submit" onclick="location.reload()" style="margin-top:50px;padding:12px 30px;">Begin Again</button>
+</div>
 
-function showCircle(n, btn) {
-  document.querySelectorAll('.circle-btn').forEach((b,i) => b.classList.toggle('active', i+1===n));
-  const list = document.getElementById('spell-list');
-  list.innerHTML = '';
-  SPELLS[n].forEach(s => {
-    const known = knownSpells.includes(s.word);
-    const d = document.createElement('div');
-    d.className = 'spell-card' + (known ? '' : ' locked');
-    d.innerHTML = `<div><div class="spell-word">${s.word}</div><div class="spell-name">${s.name}</div></div><span class="spell-cost">C${n}</span>`;
-    if (known) d.onclick = () => { document.getElementById('action-input').value = `I cast ${s.word} (${s.name}).`; document.getElementById('action-input').focus(); };
-    list.appendChild(d);
-  });
-}
-
-function renderAlchemy() {
-  const list = document.getElementById('alchemy-list');
-  list.innerHTML = '';
-  ALCHEMY.forEach(r => {
-    const d = document.createElement('div');
-    d.className = 'alchemy-card';
-    d.innerHTML = `<span style="font-family:var(--font-serif);font-size:11px;color:var(--soft);">${r.name}</span><span style="font-size:9px;color:var(--muted);">${r.ingredients.join(' + ')}</span>`;
-    list.appendChild(d);
-  });
-}
-
-function renderBestiary() {
-  const pane = document.getElementById('pane-bestiary');
-  pane.innerHTML = '';
-  BESTIARY.forEach(b => {
-    const d = document.createElement('div');
-    d.style.cssText = 'background:var(--void);border:1px solid var(--border);border-left:2px solid var(--crimson);padding:10px 12px;margin-bottom:6px;';
-    d.innerHTML = `<div style="font-family:var(--font-serif);font-size:13px;color:var(--soft);margin-bottom:3px;">${b.name}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${b.tags}</div><div style="font-size:10px;color:#c44a4a;"><span style="color:var(--muted);">Weak:</span> ${b.weak}</div><div style="font-size:10px;color:var(--teal);"><span style="color:var(--muted);">Immune:</span> ${b.immune}</div>`;
-    pane.appendChild(d);
-  });
-}
-
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const g = document.getElementById('pane-grimoire');
-  g.style.display = tab==='grimoire' ? 'flex' : 'none';
-  g.style.flexDirection = 'column'; g.style.flex = '1'; g.style.overflow = 'hidden'; g.style.minHeight = '0';
-  document.getElementById('pane-bestiary').style.display = tab==='bestiary' ? 'block' : 'none';
-}
-
-function submitAction() {
-  const ta = document.getElementById('action-input');
-  const val = ta.value.trim();
-  if (!val) return;
-  const chron = document.getElementById('chronicle');
-  const d = document.createElement('div');
-  d.className = 'entry entry-warden';
-  d.innerHTML = `<strong>Warden:</strong> ${val}`;
-  chron.appendChild(d);
-  chron.scrollTop = chron.scrollHeight;
-  ta.value = '';
-  ta.focus();
-}
-
-let ttsOn = false, musicOn = false;
-function toggleTTS() {
-  ttsOn = !ttsOn;
-  const btn = document.getElementById('tts-btn');
-  btn.textContent = ttsOn ? 'Narration: On' : 'Narration: Off';
-  btn.style.borderColor = ttsOn ? 'var(--gold-dim)' : '';
-  btn.style.color = ttsOn ? 'var(--gold)' : '';
-}
-function toggleMusic() {
-  musicOn = !musicOn;
-  const btn = document.getElementById('music-btn');
-  btn.textContent = musicOn ? 'Music: On' : 'Music: Off';
-  btn.style.borderColor = musicOn ? 'var(--gold-dim)' : '';
-  btn.style.color = musicOn ? 'var(--gold)' : '';
-}
-
-showCircle(1, null);
-renderAlchemy();
-renderBestiary();
+<!-- ═══════════════════════════════════════════════════
+     TRANSFORMERS (LOCAL EMBEDDINGS / THE STONE)
+════════════════════════════════════════════════════ -->
+<script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0';
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+    window.pipeline = pipeline;
 </script>
+
+<!-- ═══════════════════════════════════════════════════
+     GAME ENGINE — FULL ORIGINAL JS
+════════════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// MARKED.JS INIT
+// ─────────────────────────────────────────────────────────────────────────────
+let markedReady = false;
+function checkMarked() {
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({ breaks: true, gfm: true, headerIds: false, mangle: false });
+        markedReady = true;
+    } else {
+        setTimeout(checkMarked, 100);
+    }
+}
+checkMarked();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBAL STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let isTTSOn = false;
+let voices = [];
+const loadVoices = () => { voices = window.speechSynthesis.getVoices(); };
+window.speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+let memoryBank = [];
+let stoneModel = null;
+let isStoneAwake = false;
+
+let USER_PROVIDER = 'models/gemini-2.5-pro';
+let USER_API_KEY = '';
+
+const LOCATION_DATA = [];
+
+let turnCount = 0;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE STONE (LOCAL VECTOR MEMORY)
+// ─────────────────────────────────────────────────────────────────────────────
+async function awakenTheStone() {
+    if (stoneModel) return;
+    try {
+        stoneModel = await window.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        isStoneAwake = true;
+        await seedLore();
+    } catch(e) {
+        console.error("❌ The Stone failed to wake:", e);
+    }
+}
+
+async function seedLore() {
+    if (memoryBank.length > 20) return;
+    console.log("📜 Stone seeded.");
+}
+
+async function etchMemory(text, metadata = {}) {
+    if (!isStoneAwake || !text) return;
+    try {
+        const output = await stoneModel(text, { pooling: 'mean', normalize: true });
+        memoryBank.push({
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+            text, vector: Array.from(output.data), metadata, timestamp: Date.now()
+        });
+    } catch(e) { console.error("Etching failed:", e); }
+}
+
+async function consultTheStone(queryText) {
+    if (!isStoneAwake) return [{ text:"The Stone is not yet awake.", metadata:{type:"system_message"}, score:0 }];
+    if (memoryBank.length === 0) return [{ text:"The Stone is silent.", metadata:{type:"system_message"}, score:0 }];
+    try {
+        const output = await stoneModel(queryText, { pooling:'mean', normalize:true });
+        const queryVector = Array.from(output.data);
+        const results = memoryBank
+            .map(mem => ({ ...mem, score: cosineSimilarity(queryVector, mem.vector) }))
+            .sort((a,b) => b.score - a.score)
+            .filter(r => r.score > 0.40)
+            .slice(0, 3);
+        return results.length ? results : [{ text:"No relevant memories.", metadata:{type:"system_message"}, score:0 }];
+    } catch(e) {
+        return [{ text:"The Stone is clouded.", metadata:{type:"system_message"}, score:0 }];
+    }
+}
+
+function cosineSimilarity(vecA, vecB) {
+    let dot=0, magA=0, magB=0;
+    for (let i=0;i<vecA.length;i++) { dot+=vecA[i]*vecB[i]; magA+=vecA[i]**2; magB+=vecB[i]**2; }
+    return dot/(Math.sqrt(magA)*Math.sqrt(magB));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME DATA
+// ─────────────────────────────────────────────────────────────────────────────
+const SPELLS = {
+    1: [{ name:"Heal", word:"Ad Vita"},{name:"Bright", word:"Ad Luc"},{name:"Spark", word:"Ig Fac"},{name:"Ice Arrow", word:"Frig Tel"},{name:"Protect", word:"Ob Mal"},{name:"Calm", word:"Pac Cor"},{name:"Strength", word:"Vis Max"},{name:"Shock", word:"Ful Min"}],
+    2: [{ name:"Cure", word:"San Ven"},{name:"Dispel", word:"Neg Mag"},{name:"Fireball", word:"Jact Ign"},{name:"Frost Strike", word:"Glac Ful"},{name:"Purifying Light", word:"San Luc"},{name:"Lightning", word:"Mag Ful"},{name:"Stone Hammer", word:"Mur Sol"},{name:"Poison", word:"Ven Nex"}],
+    3: [{ name:"Speak with Dead", word:"Mor Loq"},{name:"Fog", word:"Neb Occ"},{name:"Stone Skin", word:"Pel Dur"},{name:"Drain", word:"Abs Mag"},{name:"Reflection", word:"Ref Mag"},{name:"Fear", word:"Terr Mens"},{name:"Haste", word:"Vel Max"},{name:"Bind", word:"Vin Nat"}],
+    4: [{ name:"Chain Lightning", word:"Ful Cat"},{name:"Blizzard", word:"Temp Frig"},{name:"Earthquake", word:"Terr Mot"},{name:"Flame Blast", word:"Flam Max"},{name:"Divine Light", word:"Luc Div"},{name:"Invisibility", word:"Occ Cor"},{name:"Divide Self", word:"Div Ego"},{name:"Banish", word:"Pel Ext"}]
+};
+
+const ALCHEMY_DATA = [
+    { name:"Healing Salve", content:"RECIPE: Healing Salve. Combines Bloodroot + Lavender + Vial. Restores HP and closes wounds.", ingredients:["Bloodroot","Lavender","Empty Vial"] },
+    { name:"Potion of Night's Sight", content:"RECIPE: Potion of Night's Sight. Combines Wolfsbane + Bloodroot + Vial. Grants ability to see clearly in total darkness.", ingredients:["Wolfsbane","Bloodroot","Empty Vial"] },
+    { name:"Leyline Amplifier", content:"RECIPE: Leyline Amplifier. Combines Silverleaf + Nightshade + Vial. Boosts spell potency temporarily.", ingredients:["Silverleaf","Nightshade","Empty Vial"] }
+];
+
+const BESTIARY_DATA = [
+    { name:"Mortal (Human)", content:"HUMAN. Bound by flesh and fear. They bleed, they tire, and they break.", weaknesses:["iron weapons","silver weapons","fire","poison","fear","stamina depletion"], immunities:[], tags:["mortal","human","technical"] },
+    { name:"Ice Voidling", content:"CREATURE OF THE VOID. Frost given hunger. Not truly alive. Iron cannot wound it. Lesser magic fails.", weaknesses:["fire"], immunities:["cold","poison","fear","iron weapons","lesser magic"], tags:["void","elemental","unmaking"] },
+    { name:"Flame Voidling", content:"CREATURE OF THE VOID. Burning absence given shape. Reality frays around it.", weaknesses:["cold"], immunities:["fire","poison","fear","iron weapons","lesser magic"], tags:["void","elemental","unmaking"] },
+    { name:"Shadow Voidling", content:"CREATURE OF THE VOID. Darkness with intention. The eye sees shape; the mind invents form.", weaknesses:["radiance","light"], immunities:["darkness","poison","fear","iron weapons","lesser magic"], tags:["void","shadow","unmaking"] },
+    { name:"Stone Voidling", content:"CREATURE OF THE VOID. Weight without substance. It presses against reality rather than standing in it.", weaknesses:["lightning"], immunities:["earth","poison","fear","iron weapons","lesser magic"], tags:["void","elemental","unmaking"] },
+    { name:"Rat Swarm", content:"BEAST. Nest-dwellers that overwhelm by number. Cowardly alone, lethal together.", weaknesses:["fire","poison","iron weapons"], tags:["beast","swarm"] },
+    { name:"Wolf", content:"BEAST. Pack hunters that coordinate attacks. Rarely fight alone.", weaknesses:["fire","poison","iron weapons"], tags:["beast","pack","forest"] },
+    { name:"Grave Walker", content:"UNDEAD (RISEN). Armored corpse with rusted steel fused to bone. Heavy, slow, relentless.", weaknesses:["lightning","stone weapons"], immunities:["poison","fear","cold"], tags:["undead","risen"] },
+    { name:"Wraith", content:"UNDEAD (RISEN). Incorporeal spirit bound by dark magic. Physical weapons pass through.", weaknesses:["light","radiance","dispel magic"], immunities:["physical weapons","poison","fear","cold"], tags:["undead","spirit"] },
+    { name:"Vampire Thrall", content:"VAMPIRE (LESSER). Recently turned. Feral, fast, reckless. Strong but undisciplined.", weaknesses:["light","fire","silver"], resistances:["iron weapons"], tags:["vampire","undead"] },
+    { name:"Noble Vampire", content:"VAMPIRE (ANCIENT). Centuries old. Calculated and patient. Rarely fights alone.", weaknesses:["light","fire","silver","divine light","decapitation","stake through heart"], resistances:["iron weapons"], tags:["vampire","ancient","undead"] },
+    { name:"Stone Sentinel", content:"CONSTRUCT (STONE-HEWN). Moss-covered guardian of ancient ruins. Slow but unstoppable.", weaknesses:["lightning","earthquake"], immunities:["poison","fire","ice","fear"], tags:["construct","guardian"] },
+    { name:"Dark Warden", content:"THE FALLEN. Once a Warden, now hollowed by the Void. Casts without limit. Flesh is cold, movements unnatural.", weaknesses:["steel weapons","spells","banishment (Pel Ext)"], notes:"Banishment may expel the Void. Sometimes the Warden wakes; sometimes only ash remains.", tags:["fallen","warden","void-touched"] }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let currentCircle = 1;
+let conversationLog = [];
+let summaries = [];
+let fullLog = [];
+
+const gameState = {
+    hp: 50, maxHp: 50,
+    region: "Aeloria", location: "Docks",
+    gold: 3, silver: 15, copper: 50,
+    factions: { "Valdris":0, "Aeloria":0, "Thornhaven":0, "The Pale Reaches":0 },
+    inventory: [{ name:"Iron Shortsword", count:1 }, { name:"Letter from Lyssa", count:1 }],
+    equipment: { mainHand:null, offHand:null, helm:null, gorget:null, chest:null, arms:null, hands:null, leggings:null, boots:null, bow:null },
+    active_vow: null, completedVows: [], fracture: 0,
+    conversationLog: [], summaries: [], bound: {},
+    spells: ["Ad Vita","Ad Luc","Ig Fac","Frig Tel","Ob Mal","Pac Cor","Vis Max","Ful Min"],
+    status: "Active"
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GRIMOIRE RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
+function showCircle(n) {
+    currentCircle = n;
+    document.querySelectorAll('.circle-btn').forEach((b,i) => b.classList.toggle('active', i+1===n));
+    const list = document.getElementById('spell-list');
+    list.innerHTML = '';
+    SPELLS[n].forEach(s => {
+        const isKnown = gameState.spells.includes(s.word);
+        const div = document.createElement('div');
+        div.className = isKnown ? 'spell-card' : 'spell-card locked';
+        div.innerHTML = `<div><div class="spell-word">${s.word}</div><div class="spell-name">${s.name}</div></div><span class="spell-cost">C${n}</span>`;
+        if (isKnown) div.onclick = () => castSpell(s);
+        list.appendChild(div);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BESTIARY RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
+function renderBestiary() {
+    const container = document.getElementById('bestiary-container');
+    container.innerHTML = '';
+    BESTIARY_DATA.forEach(beast => {
+        const card = document.createElement('div');
+        card.className = 'book-entry';
+        const tags = beast.tags ? beast.tags.join(" • ") : "Unknown";
+        let lore = beast.content.replace(beast.name.toUpperCase() + ".", "").trim();
+        let weakHtml = beast.weaknesses?.length ? `<div class="book-stat"><span class="stat-label">Weaknesses: </span><span class="stat-val-weak">${beast.weaknesses.join(", ")}</span></div>` : "";
+        let immHtml = beast.immunities?.length ? `<div class="book-stat"><span class="stat-label">Immunities: </span><span class="stat-val-imm">${beast.immunities.join(", ")}</span></div>` : "";
+        card.innerHTML = `<div class="book-title">${beast.name}</div><div class="book-tags">${tags}</div><div class="book-content">${lore}</div>${weakHtml}${immHtml}`;
+        container.appendChild(card);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ALCHEMY RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
+function renderAlchemy() {
+    const list = document.getElementById('alchemy-list');
+    list.innerHTML = '';
+    ALCHEMY_DATA.forEach(recipe => {
+        const div = document.createElement('div');
+        div.className = 'alchemy-card';
+        const hasIngredients = recipe.ingredients.every(ing => {
+            const item = gameState.inventory.find(i => i.name.toLowerCase() === ing.toLowerCase());
+            return item && (item.count || 0) >= 1;
+        });
+        const ingredientsList = recipe.ingredients.map(ing => {
+            const item = gameState.inventory.find(i => i.name.toLowerCase() === ing.toLowerCase());
+            const color = (item && (item.count||0) >= 1) ? 'var(--gold)' : 'var(--crimson-bright)';
+            return `<span style="color:${color}">${ing}</span>`;
+        }).join(', ');
+        div.innerHTML = `
+            <div>
+                <div class="spell-word" style="color:var(--gold-dim);">Recipe</div>
+                <div class="spell-name" style="font-family:var(--font-serif);font-size:12px;color:var(--soft);">${recipe.name}</div>
+                <div class="alchemy-desc">Requires: ${ingredientsList}</div>
+            </div>
+            <button onclick="craftPotion(ALCHEMY_DATA.find(r=>r.name==='${recipe.name}'))"
+                style="margin-top:6px;background:${hasIngredients?'var(--slate)':'transparent'};border:1px solid ${hasIngredients?'var(--gold-dim)':'var(--border)'};color:${hasIngredients?'var(--gold)':'var(--muted)'};padding:4px 10px;font-family:var(--font-serif);font-size:9px;text-transform:uppercase;letter-spacing:1px;cursor:${hasIngredients?'pointer':'not-allowed'};transition:0.2s;"
+                ${!hasIngredients?'disabled':''}>Craft</button>`;
+        list.appendChild(div);
+    });
+}
+
+function craftPotion(recipe) {
+    const missing = recipe.ingredients.filter(ing => {
+        const item = gameState.inventory.find(i => i.name.toLowerCase() === ing.toLowerCase());
+        return !item || (item.count||0) < 1;
+    });
+    if (missing.length) { displayMessage(`Cannot craft ${recipe.name}. Missing: ${missing.join(", ")}`, "System"); return; }
+    recipe.ingredients.forEach(ing => {
+        const item = gameState.inventory.find(i => i.name.toLowerCase() === ing.toLowerCase());
+        if (item) item.count = (item.count||0) - 1;
+    });
+    gameState.inventory = gameState.inventory.filter(i => (i.count||0) > 0);
+    const existing = gameState.inventory.find(i => i.name.toLowerCase() === recipe.name.toLowerCase());
+    if (existing) existing.count = (existing.count||0) + 1;
+    else gameState.inventory.push({ name:recipe.name, count:1 });
+    updateInventoryUI(gameState.inventory);
+    displayMessage(`Crafted ${recipe.name}.`, "System");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────────────────────────────────────
+window.switchLeftPanel = function(tabName) {
+    document.getElementById('tab-grimoire').classList.toggle('active', tabName==='grimoire');
+    document.getElementById('tab-bestiary').classList.toggle('active', tabName==='bestiary');
+    const gc = document.getElementById('grimoire-container');
+    const bc = document.getElementById('bestiary-container');
+    if (tabName === 'grimoire') {
+        gc.style.display = 'flex'; gc.style.flexDirection = 'column'; gc.style.flexGrow = '1';
+        bc.style.display = 'none';
+    } else {
+        gc.style.display = 'none';
+        bc.style.display = 'flex'; bc.style.flexDirection = 'column'; bc.style.flexGrow = '1';
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEATH SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+function triggerDeath() {
+    const screen = document.getElementById('void-screen');
+    screen.style.display = 'flex';
+    setTimeout(() => screen.style.opacity = 1, 100);
+    if (typeof activeAmbient !== 'undefined' && activeAmbient) activeAmbient.pause();
+    if (typeof activeCombat !== 'undefined' && activeCombat) activeCombat.pause();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MUSIC
+// ─────────────────────────────────────────────────────────────────────────────
+const victoryTrack = document.getElementById('victory-music');
+const TRACKS = {
+    "Aeloria":      { ambient:["amb-aeloria-1","amb-aeloria-2","amb-aeloria-3"], combat:["btl-aeloria-1","btl-aeloria-2","btl-aeloria-3"] },
+    "Valdris":      { ambient:["amb-valdris-1","amb-valdris-2","amb-valdris-3"], combat:["btl-valdris-1","btl-valdris-2","btl-valdris-3"] },
+    "Thornhaven":   { ambient:["amb-thorn-1","amb-thorn-2","amb-thorn-3"],       combat:["btl-thorn-1","btl-thorn-2","btl-thorn-3"] },
+    "The Pale Reaches": { ambient:["amb-pale-1","amb-pale-2","amb-pale-3"],      combat:["btl-pale-1","btl-pale-2","btl-pale-3"] }
+};
+const TRACK_INDEX = { "Aeloria":{ambient:0,combat:0},"Valdris":{ambient:0,combat:0},"Thornhaven":{ambient:0,combat:0},"The Pale Reaches":{ambient:0,combat:0} };
+
+let currentRegion = "Aeloria";
+let activeAmbient = document.getElementById(TRACKS["Aeloria"].ambient[0]);
+let activeCombat  = document.getElementById(TRACKS["Aeloria"].combat[0]);
+let isMusicOn = false;
+let isCombat = false;
+let currentVol = 0.6;
+
+Object.values(TRACKS).forEach(rd => {
+    [...rd.ambient, ...rd.combat].forEach(id => { const el=document.getElementById(id); if(el) el.volume=currentVol; });
+});
+if (victoryTrack) victoryTrack.volume = currentVol;
+
+if (victoryTrack) {
+    victoryTrack.onended = function() {
+        if (isMusicOn && !isCombat && activeAmbient) activeAmbient.play().catch(()=>{});
+    };
+}
+
+function switchRegionAudio(newRegionName) {
+    if (currentRegion === newRegionName && activeAmbient && !activeAmbient.paused) return;
+    if (activeAmbient) { activeAmbient.pause(); activeAmbient.currentTime = 0; }
+    currentRegion = newRegionName;
+    const rd = TRACKS[newRegionName] || TRACKS["Aeloria"];
+    const idx = TRACK_INDEX[newRegionName] || TRACK_INDEX["Aeloria"];
+    const ae = document.getElementById(rd.ambient[idx.ambient]);
+    const ce = document.getElementById(rd.combat[idx.combat]);
+    if (!ae || !ce) return;
+    activeAmbient = ae; activeCombat = ce;
+    idx.ambient = (idx.ambient + 1) % rd.ambient.length;
+    activeAmbient.volume = currentVol;
+    if (isMusicOn && !isCombat) activeAmbient.play().catch(()=>{});
+}
+
+function setCombatState(inCombat) {
+    if (isCombat === inCombat) return;
+    isCombat = inCombat;
+    if (!isMusicOn) return;
+    const rd = TRACKS[currentRegion] || TRACKS["Aeloria"];
+    const idx = TRACK_INDEX[currentRegion] || TRACK_INDEX["Aeloria"];
+    if (isCombat) {
+        if (activeAmbient) activeAmbient.pause();
+        if (victoryTrack) victoryTrack.pause();
+        const ce = document.getElementById(rd.combat[idx.combat]);
+        if (!ce) return;
+        activeCombat = ce;
+        idx.combat = (idx.combat + 1) % rd.combat.length;
+        activeCombat.currentTime = 0;
+        activeCombat.play().catch(()=>{});
+    } else {
+        if (activeCombat) activeCombat.pause();
+        if (victoryTrack) {
+            victoryTrack.currentTime = 0;
+            victoryTrack.play().then(() => {
+                victoryTrack.onended = () => { if (!isCombat && activeAmbient) activeAmbient.play().catch(()=>{}); };
+            }).catch(() => { if (activeAmbient) activeAmbient.play().catch(()=>{}); });
+        }
+    }
+}
+
+function toggleMusic() {
+    isMusicOn = !isMusicOn;
+    const btn = document.getElementById('music-btn');
+    if (isMusicOn) {
+        btn.innerHTML = "Music: <span style='color:var(--gold)'>ON</span>";
+        btn.style.borderColor = "var(--gold-dim)"; btn.style.color = "var(--muted)";
+        if (isCombat) { if (activeCombat) activeCombat.play().catch(()=>{}); }
+        else { if (activeAmbient) activeAmbient.play().catch(()=>{}); }
+    } else {
+        btn.innerHTML = "Music: Off";
+        btn.style.borderColor = ""; btn.style.color = "";
+        if (activeAmbient) activeAmbient.pause();
+        if (activeCombat) activeCombat.pause();
+        if (victoryTrack) victoryTrack.pause();
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TTS
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleTTS() {
+    isTTSOn = !isTTSOn;
+    const btn = document.getElementById('tts-btn');
+    if (isTTSOn) {
+        btn.innerHTML = "Narration: <span style='color:var(--gold)'>ON</span>";
+        btn.style.borderColor = "var(--gold-dim)";
+    } else {
+        btn.innerHTML = "Narration: Off";
+        btn.style.borderColor = "";
+        window.speechSynthesis.cancel();
+    }
+}
+
+function speakChronicle(text, speaker='Chronicler') {
+    if (!isTTSOn || !text) return;
+    window.speechSynthesis.cancel();
+    let cleanText = text.replace(/\[.*?\]/gi,'').replace(/`/g,'').trim();
+    cleanText = cleanText.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const profiles = {
+        'Archivist': { rate:1.0, pitch:0.8, voiceMatch:'Google UK English Male' },
+        'Painter':   { rate:1.0, pitch:1.4, voiceMatch:'Google US English' },
+        'Mirror':    { rate:0.7, pitch:0.5, voiceMatch:'Female' }
+    };
+    if (profiles[speaker]) {
+        utterance.rate = profiles[speaker].rate;
+        utterance.pitch = profiles[speaker].pitch;
+    } else {
+        utterance.rate = isCombat ? 1.2 : 0.85;
+        utterance.pitch = isCombat ? 0.9 : 0.75;
+    }
+    const match = profiles[speaker]?.voiceMatch;
+    const vs = window.speechSynthesis.getVoices();
+    const preferredVoice = (match ? vs.find(v=>v.name.includes(match)) : null)
+        || vs.find(v=>v.name.includes('Google US English'))
+        || vs.find(v=>v.name.includes('Male'))
+        || vs[0];
+    if (preferredVoice) utterance.voice = preferredVoice;
+    window.speechSynthesis.speak(utterance);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPELL & INVENTORY HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function castSpell(s) { generateAIResponse(s.word); }
+
+function insertTextAtCursor(text) {
+    const input = document.getElementById('action-input');
+    if (!input) return;
+    const start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.slice(0, start) + text + input.value.slice(end);
+    input.selectionStart = input.selectionEnd = start + text.length;
+    input.focus();
+}
+
+const SPELL_LOOKUP = {};
+Object.values(SPELLS).forEach(circle => { circle.forEach(s => { SPELL_LOOKUP[s.word.toUpperCase()] = s.name; }); });
+
+const SPELL_CIRCLE = {};
+Object.entries(SPELLS).forEach(([circle, spellList]) => { spellList.forEach(s => { SPELL_CIRCLE[s.word.toUpperCase()] = Number(circle); }); });
+
+const CIRCLE_AUDIO_PARAMS = {
+    1: { volumeRange:[0.6,0.8], echoCount:1, echoOffset:[150,250], duckFactor:0.4 },
+    2: { volumeRange:[0.8,1.0], echoCount:2, echoOffset:[100,300], duckFactor:0.5 },
+    3: { volumeRange:[0.5,0.7], echoCount:2, echoOffset:[200,400], duckFactor:0.35 },
+    4: { volumeRange:[0.9,1.0], echoCount:3, echoOffset:[150,400], duckFactor:0.6 }
+};
+
+function playSpellEffect(spellWord) {
+    const upperWord = spellWord.toUpperCase();
+    const circle = SPELL_CIRCLE[upperWord] || 1;
+    const params = CIRCLE_AUDIO_PARAMS[circle];
+    const englishName = SPELL_LOOKUP[upperWord] || spellWord;
+    const filename = englishName.toLowerCase().replace(/\s+/g,'') + ".mp3";
+    const bgTracks = [activeAmbient, activeCombat, victoryTrack].filter(t=>t&&!t.paused);
+    const originalVolumes = bgTracks.map(t=>t.volume);
+    bgTracks.forEach(t => t.volume *= params.duckFactor);
+    try {
+        const audio = new Audio(filename);
+        audio.volume = params.volumeRange[0] + Math.random()*(params.volumeRange[1]-params.volumeRange[0]);
+        setTimeout(() => audio.play().catch(()=>{}), Math.random()*200);
+        for (let i=0;i<params.echoCount;i++) {
+            const echo = new Audio(filename);
+            echo.volume = audio.volume * (0.5 - i*0.1);
+            const offset = params.echoOffset[0] + Math.random()*(params.echoOffset[1]-params.echoOffset[0]);
+            setTimeout(() => echo.play().catch(()=>{}), offset);
+        }
+        audio.onended = () => { bgTracks.forEach((t,i) => t.volume = originalVolumes[i]); };
+    } catch(e) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMIT ACTION (user input)
+// ─────────────────────────────────────────────────────────────────────────────
+function commitAction() {
+    const i = document.getElementById('action-input');
+    let val = i.value.trim();
+    if (val) {
+        const matches = [...val.matchAll(/\[Cast:\s*(.+?)\]/gi)];
+        if (matches.length > 1) {
+            const firstSpell = matches[0][0];
+            val = `${val.replace(/\[Cast:\s*(.+?)\]/gi,'').trim()} ${firstSpell}`;
+        }
+        generateAIResponse(val);
+        i.value = '';
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI UPDATE FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+function updateLocationUI(region, site) {
+    document.getElementById('loc-display').innerText = region;
+    document.getElementById('site-display').innerText = site;
+}
+
+function updateFactionsUI(factions) {
+    if (factions["Valdris"] !== undefined) document.getElementById('fac-Valdris').innerText = factions["Valdris"];
+    if (factions["Aeloria"] !== undefined) document.getElementById('fac-Aeloria').innerText = factions["Aeloria"];
+    if (factions["Thornhaven"] !== undefined) document.getElementById('fac-Thornhaven').innerText = factions["Thornhaven"];
+    if (factions["The Pale Reaches"] !== undefined) document.getElementById('fac-PaleReaches').innerText = factions["The Pale Reaches"];
+}
+
+function updateVowUI(vow) {
+    const card = document.getElementById('vow-container');
+    if (vow) {
+        card.className = "vow-card active";
+        card.innerHTML = `<div class="vow-title">${vow.name}</div><div class="vow-obj">${vow.objective}</div><div class="vow-pay">Bounty: ${vow.payout}</div>`;
+    } else {
+        card.className = "vow-card";
+        card.innerHTML = `<div class="vow-title">No Oath Sworn</div><div class="vow-obj" style="font-size:11px;color:var(--muted);font-style:italic;">The spirit is unburdened.</div>`;
+    }
+}
+
+function updateEquipmentUI() {
+    const container = document.getElementById('equipment-slots');
+    if (!container) return;
+    container.innerHTML = '';
+    const slotConfig = [
+        { key:'mainHand', label:'Main Hand', keywords:['sword','axe','mace','dagger','staff','wand','blade','hammer','spear','katana','club','flail','rapier','scimitar','cleaver','saber'] },
+        { key:'offHand',  label:'Off Hand',  keywords:['shield','buckler','dagger','parrying','tome','orb','focus'] },
+        { key:'helm',     label:'Helm',      keywords:['helm','helmet','crown','circlet','hood','cap','coif','mask','headband'] },
+        { key:'gorget',   label:'Neck',      keywords:['gorget','collar','necklace','amulet','pendant','torc','choker','neck','chain','talisman','locket','medallion'] },
+        { key:'chest',    label:'Chest',     keywords:['armor','mail','plate','breastplate','cuirass','tunic','robe','vest','hauberk','jerkin','coat','jacket','chainmail','chestplate'] },
+        { key:'arms',     label:'Arms',      keywords:['bracer','vambrace','armguard','sleeve','pauldron','spaulder','shoulder'] },
+        { key:'hands',    label:'Hands',     keywords:['glove','gauntlet','mitt','bracer','wraps','hand'] },
+        { key:'leggings', label:'Leggings',  keywords:['legging','greaves','pants','trousers','chausses','leg','cuisse','tasset'] },
+        { key:'boots',    label:'Boots',     keywords:['boot','shoe','sabatons','greaves','sandal','foot'] },
+        { key:'bow',      label:'Bow',       keywords:['bow','crossbow','longbow','shortbow','arbalest','ballista'] }
+    ];
+    slotConfig.forEach(slot => {
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'equipment-slot';
+        const label = document.createElement('span');
+        label.className = 'slot-label';
+        label.textContent = slot.label;
+        const dropdown = document.createElement('select');
+        dropdown.className = 'slot-dropdown';
+        dropdown.onchange = (e) => { gameState.equipment[slot.key] = e.target.value || null; updateEquipmentUI(); };
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = ''; emptyOpt.textContent = '(Empty)';
+        dropdown.appendChild(emptyOpt);
+        gameState.inventory.forEach(item => {
+            if (slot.keywords.some(kw => item.name.toLowerCase().includes(kw))) {
+                const opt = document.createElement('option');
+                opt.value = item.name; opt.textContent = item.name;
+                dropdown.appendChild(opt);
+            }
+        });
+        if (gameState.equipment[slot.key]) dropdown.value = gameState.equipment[slot.key];
+        slotDiv.appendChild(label);
+        slotDiv.appendChild(dropdown);
+        container.appendChild(slotDiv);
+    });
+}
+
+function updateInventoryUI(inventory) {
+    const container = document.getElementById('inventory-content');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!inventory || inventory.length === 0) {
+        container.innerHTML = '<div style="color:var(--muted);padding:10px;font-size:11px;">EMPTY</div>';
+        return;
+    }
+    inventory.forEach(item => {
+        const count = item.count || item.quantity || 1;
+        const row = document.createElement('div');
+        row.className = 'inventory-item';
+        row.onclick = () => insertTextAtCursor(item.name);
+        row.innerHTML = `<span class="item-name">${item.name}</span><span class="item-count">${count > 1 ? '×'+count : ''}</span>`;
+        container.appendChild(row);
+    });
+    updateEquipmentUI();
+}
+
+function updateWealthUI(gold, silver, copper) {
+    document.getElementById('gold-display').innerText = gold;
+    document.getElementById('silver-display').innerText = silver;
+    document.getElementById('copper-display').innerText = copper;
+}
+
+function updateVitalityUI(hp, maxHp) {
+    document.getElementById('hp-display').innerText = `${hp}/${maxHp}`;
+    const hpBox = document.querySelector('.hp-box');
+    if (hpBox) hpBox.style.boxShadow = hp <= 5 ? "0 0 12px rgba(196,74,74,0.6) inset" : "none";
+}
+
+function updateUI() {
+    updateLocationUI(gameState.region, gameState.location);
+    updateWealthUI(gameState.gold, gameState.silver, gameState.copper);
+    updateFactionsUI(gameState.factions);
+    updateVowUI(gameState.active_vow);
+    updateInventoryUI(gameState.inventory);
+    showCircle(currentCircle);
+    updateVitalityUI(gameState.hp, gameState.maxHp);
+    renderAlchemy();
+
+    const box = document.getElementById('fracture-box');
+    const val = document.getElementById('fracture-val');
+    val.innerText = `${gameState.fracture}/4`;
+    box.classList.remove('fracture-warning','fracture-danger');
+    if (gameState.fracture >= 4) box.classList.add('fracture-danger');
+    else if (gameState.fracture >= 3) box.classList.add('fracture-warning');
+
+    // Turn counter
+    const tc = document.getElementById('turn-counter');
+    if (tc) tc.innerText = `turn ${turnCount}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WARDEN ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+class WardenEngine {
+    constructor(initialState) { this.state = initialState; }
+
+    stripRunes(text) { return text ? text.replace(/\[.*?\]/gi,"").trim() : ""; }
+
+    parseRunes(text) {
+        const changes = {
+            narrative:text, raw_runes:[], location:null,
+            gold_delta:0, silver_delta:0, copper_delta:0, hp_delta:0,
+            faction_changes:[], vow_update:null, spells_cast:[], spells_learned:[],
+            inventory_updates:[], combat_change:null, bound_updates:[], status_update:null
+        };
+
+        const statusMatch = text.match(/\[Status:\s*(Reset|Deceased)\]/i);
+        if (statusMatch) { changes.status_update = statusMatch[1].toLowerCase(); changes.raw_runes.push(statusMatch[0]); }
+
+        const locMatch = text.match(/\[Loc:\s*(.+?)\s*\|\s*(.+?)\]/i);
+        if (locMatch) { changes.location = { region:locMatch[1].trim(), site:locMatch[2].trim() }; changes.raw_runes.push(locMatch[0]); }
+
+        const facMatches = [...text.matchAll(/\[Faction:\s*(.*?)\s*(?:\||:)?\s*([+-]?\d+)\]/gi)];
+        facMatches.forEach(m => {
+            changes.faction_changes.push({ name:m[1].replace(/[|:]$/,'').trim(), value:parseInt(m[2]) });
+            changes.raw_runes.push(m[0]);
+        });
+
+        const boundMatches = [...text.matchAll(/\[Bound:\s*(.+?)\s*\|\s*Status:\s*(Met|Trusted|Severed|Deceased)\]/gi)];
+        boundMatches.forEach(m => { changes.bound_updates.push({name:m[1].trim(),status:m[2].trim().toLowerCase()}); changes.raw_runes.push(m[0]); });
+
+        const fullItemTags = [...text.matchAll(/\[Item:.*?\]/gi)];
+        fullItemTags.forEach(tag => {
+            const content = tag[0].slice(6,-1);
+            const parts = content.split('|').map(s=>s.trim());
+            const name = parts[0]; let qty=1, val=0;
+            parts.forEach(p => {
+                if (p.toLowerCase().startsWith('quantity:')) qty = parseInt(p.split(':')[1]);
+                if (p.toLowerCase().startsWith('value:')) val = parseInt(p.split(':')[1]);
+            });
+            changes.raw_runes.push(tag[0]);
+            if (name.toLowerCase() === 'gold') changes.gold_delta += qty;
+            else if (name.toLowerCase() === 'silver') changes.silver_delta += qty;
+            else if (name.toLowerCase() === 'copper') changes.copper_delta += qty;
+            else changes.inventory_updates.push({ name, count:qty, value:val });
+        });
+
+        const hpMatches = [...text.matchAll(/\[HP:\s*([+-]?\d+)\]/gi)];
+        hpMatches.forEach(m => { changes.hp_delta += parseInt(m[1]); changes.raw_runes.push(m[0]); });
+
+        const castMatches = [...text.matchAll(/\[Cast:\s*(.+?)\]/gi)];
+        castMatches.forEach(m => { changes.spells_cast.push(m[1].trim()); changes.raw_runes.push(m[0]); });
+
+        const learnMatches = [...text.matchAll(/\[Learn:\s*(.+?)\]/gi)];
+        learnMatches.forEach(m => { changes.spells_learned.push(m[1].trim()); changes.raw_runes.push(m[0]); });
+
+        const vowStart = text.match(/\[Vow_Start:\s*(.+?)\s*\|\s*Obj:\s*(.+?)\s*\|\s*Pay:\s*(.+?)\]/i);
+        if (vowStart) { changes.vow_update = { status:'started', name:vowStart[1].trim(), objective:vowStart[2].trim(), payout:vowStart[3].trim() }; changes.raw_runes.push(vowStart[0]); }
+
+        const vowEnd = text.match(/\[Vow_End:\s*(.+?)\s*\|\s*Pay:\s*(.+?)\s*\|\s*Pass:\s*(True|False)\]/i);
+        if (vowEnd) { changes.vow_update = { status:'ended', name:vowEnd[1].trim(), payout:vowEnd[2].trim(), success:vowEnd[3].toLowerCase()==='true' }; changes.raw_runes.push(vowEnd[0]); }
+
+        if (/\[Combat:\s*Start\]/i.test(text)) { changes.combat_change="start"; changes.raw_runes.push("[Combat: Start]"); }
+        if (/\[Combat:\s*End\]/i.test(text)) { changes.combat_change="end"; changes.raw_runes.push("[Combat: End]"); }
+
+        return changes;
+    }
+
+    processMessage(rawText) { this.processTurn(rawText); return rawText; }
+
+    processTurn(aiResponse) {
+        const data = this.parseRunes(aiResponse);
+        data.narrative = aiResponse.replace(/\[.*?\]/gi,"").trim();
+
+        if (data.status_update) {
+            this.state.status = data.status_update.charAt(0).toUpperCase() + data.status_update.slice(1);
+            if (data.status_update === 'reset') this.state.fracture = 0;
+            else if (data.status_update === 'deceased') { this.state.hp = 0; triggerDeath(); }
+        }
+
+        if (data.combat_change) { try { setCombatState(data.combat_change==="start"); } catch(e){} }
+
+        if (data.spells_cast.length > 0) {
+            this.state.fracture += data.spells_cast.length;
+            if (this.state.fracture >= 4) { try { new Audio('glass_shatter.mp3').play(); } catch(e){} }
+        }
+
+        if (data.location) {
+            if (this.state.region !== data.location.region) { try { switchRegionAudio(data.location.region); } catch(e){} }
+            this.state.region = data.location.region;
+            this.state.location = data.location.site;
+        }
+
+        const currentTotal = (this.state.gold*10000) + (this.state.silver*100) + this.state.copper;
+        const deltaTotal = (data.gold_delta*10000) + (data.silver_delta*100) + data.copper_delta;
+        const newTotal = Math.max(0, currentTotal + deltaTotal);
+        this.state.gold   = Math.floor(newTotal / 10000);
+        this.state.silver = Math.floor((newTotal % 10000) / 100);
+        this.state.copper = newTotal % 100;
+
+        data.faction_changes.forEach(f => {
+            let name = f.name;
+            if (name==="Pale Reaches"||name==="The Pale Reach") name="The Pale Reaches";
+            if (this.state.factions[name] !== undefined) this.state.factions[name] += f.value;
+        });
+
+        if (data.bound_updates.length > 0) {
+            if (!this.state.bound) this.state.bound = {};
+            data.bound_updates.forEach(u => { this.state.bound[u.name] = u.status; });
+        }
+
+        data.inventory_updates.forEach(newItem => {
+            let existing = this.state.inventory.find(i => i.name.toLowerCase() === newItem.name.toLowerCase());
+            if (existing) { existing.count = (existing.count || 0) + newItem.count; delete existing.quantity; }
+            else if (newItem.count > 0) this.state.inventory.push({ name:newItem.name, count:newItem.count });
+        });
+        this.state.inventory = this.state.inventory.filter(i => (i.count || i.quantity || 0) > 0);
+
+        if (data.vow_update) {
+            if (data.vow_update.status === 'started') this.state.active_vow = data.vow_update;
+            else if (data.vow_update.status === 'ended') {
+                this.state.active_vow = null;
+                if (data.vow_update.success && !this.state.completedVows.includes(data.vow_update.name))
+                    this.state.completedVows.push(data.vow_update.name);
+            }
+        }
+
+        if (data.hp_delta !== 0) {
+            this.state.hp = Math.max(0, Math.min(this.state.maxHp, this.state.hp + data.hp_delta));
+            if (this.state.hp <= 0) triggerDeath();
+        }
+
+        data.spells_learned.forEach(s => { if (!this.state.spells.includes(s)) this.state.spells.push(s); });
+        data.spells_cast.forEach(s => { try { playSpellEffect(s); } catch(e){} });
+
+        return data;
+    }
+}
+
+const engine = new WardenEngine(gameState);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SYSTEM PROMPT
+// ─────────────────────────────────────────────────────────────────────────────
+const currentSystemPrompt = `# 📜 SCROLL OF THE WARDEN
+
+---
+
+## 🜏 INVOCATION — THE SPARK OF SENTIENCE
+
+> You are an ancient chronicler of the old ways—the keeper of deeds long after they fade.
+
+**You describe; you never interpret.**
+**You observe; you never assume.**
+
+*   Speak not the Warden's words, nor their thoughts.
+*   When the Warden speaks, the words are carved in double marks—"like this."
+*   All else is movement, memory, or dust.
+
+**Let firelight, steel, silence, and dust define the age.**
+**The Leyline is your pulse.**
+
+---
+
+## 🪨 THE IMMUTABLE STONE
+
+The Stone is an **append-only, subjective history** of the Warden's experiences. It is a technical record of the past, not a command for the present.
+
+### The Three Laws
+
+1. **Current State Overrides History:** If the current game state or storage contradicts The Stone, **trust the present**.
+2. **Subjective Perspective:** The Stone records what the Warden *perceived* (including deceptions or prophecies), not objective reality.
+3. **Recency Bias:** Newer entries outweigh older ones. If memories conflict, the most recent turn reflects the current evolution of the truth.
+
+### Operational Rules
+
+* **Context vs. Truth:** Use The Stone for context, but rely on the game state for truth.
+* **No Flourish:** Do not treat The Stone as a narrator or invent entries. Reference it only when tags are explicitly provided.
+* **The Golden Rule:** When Stone and present conflict, **believe the present.**
+
+---
+
+## 🜖 RUNES — THE SILENT MARK
+
+Every true change must be sealed in a rune.
+Runes are spoken **after prose**.
+
+### **Recognized Forms**
+1.  [HP: +/-N] (Damage taken or healed)
+2.  [Learn: <Spell>]
+3.  [Cast: <Spell>]
+4.  [Faction: <Faction> +/-N]
+5.  [Item: <n> | Quantity: <N> | Value: <g>]
+6.  [Loc: <Region> | <Location>]
+7.  [Vow_Start/End: <n> | Obj: <Task> | Pay: <N>]
+8.  [Combat: Start/End]
+9.  [Status: Reset/Deceased]
+
+**Only these nine runes are recognized by the chronicle.**
+Use the exact forms. Invent no other runes.
+
+**Examples:**
+*   When the Warden takes a hit: [HP: -4]
+*   When the Warden drinks a potion: [Item: Healing Salve | Quantity: -1] [HP: +10]
+*   When combat begins or weapons are drawn: [Combat: Start]
+*   When the threat is dead, fled, or the Warden escapes: [Combat: End]
+*   When magical strain is cleared or the Warden rests: [Status: Reset]
+*   When the Warden's journey ends (regardless of HP): [Status: Deceased]
+
+### **WEALTH**
+**Wealth:** 1 Gold = 100 Silver = 10,000 Copper
+*Standard costs: Ale (5-20 Copper), Room (5-50 Silver), Major Items (1-10 Gold)*
+
+To award wealth:
+[Item: Gold | Quantity: N]
+[Item: Silver | Quantity: N]
+[Item: Copper | Quantity: N]
+
+## 🩸 VITALITY
+
+**HEALTH (HP)**
+*   **0 HP = DEATH.**
+*   **Restoring HP:** Potions, Healing Spells (*Ad Vita*), or Resting (Inn/Camp).
+
+---
+
+## ♜ WARDENS — THE IRON GATE
+
+> The Warden is the shield against the unmaking.
+> The Void presses against the skin of the world, seeking a crack.
+> You are the iron that binds the wound.
+
+**The Leyline is a torrent through a straw.** It does not give; it only lends. To cast is to borrow. The debt is paid in iron, blood, and focus.
+
+### **The Rule of Fracture (Magic Cap)**
+The mortal vessel has a hard limit. You MUST track this using the internal state.
+* **1-2 Spells:** Controlled focus. The air chills.
+* **3 Spells (The Threshold):** Frost burns the skin
+* **4 Spells (The Breach):** The vessel cracks. Vision blurs, veins darken, nosebleeds or trembling hands **Every cast deals [HP: -20] to the Warden.**
+* **5+ Spells:** Total collapse. The cast fails and the Warden is stunned for 2 turns as the Void rushes in.
+
+**Describe the strain of holding the gate.** Show the cost: The metallic taste of blood, the armor feeling heavier, and the agonizing heat of the Leyline surging through the Warden's veins.
+
+---
+
+## ✴ THE FORMS — THE THIRTY-TWO WORDS
+
+The knowledge holds Thirty-Two Words. Speak them to shape the void.
+
+**THE FIRST CIRCLE (FOUNDATION)**
+* **Ad Vita (Heal):** Restores vitality to living tissue. Closes minor wounds and stops bleeding. Does not regrow limbs.
+* **Ad Luc (Bright):** Creates a floating orb of cold light. Lasts 1 hour. Can be attached to objects.
+* **Ig Fac (Spark):** Creates a small, momentary flame. Used to ignite torches/oil. Low combat damage.
+* **Frig Tel (Ice Arrow):** Fires a sharp projectile of magical ice. Piercing and Cold damage. Good against unarmored foes.
+* **Ob Mal (Protect):** Raises a shimmering barrier of force. Absorbs one significant physical blow before shattering.
+* **Pac Cor (Calm):** Soothes aggression in beasts or simple-minded foes. Broken if the target is attacked.
+* **Vis Max (Strength):** Temporarily enhances physical muscle. Allows feats of lifting or crushing beyond human limits.
+* **Ful Min (Shock):** Emits a jolt of electricity from the hand. High damage to targets in metal armor.
+
+**THE SECOND CIRCLE (COMBAT)**
+* **San Ven (Cure):** Neutralizes non-magical toxins and venoms in the blood. Must be cast shortly after poisoning.
+* **Neg Mag (Dispel):** Unravels active magical effects, barriers, or bindings. Costs significant focus.
+* **Jact Ign (Fireball):** Hurls a ball of volatile fire. Explodes on impact (Area of Effect). Dangerous in tight spaces.
+* **Glac Ful (Frost Strike):** Imbues the next melee strike with freezing cold. Can shatter weakened metal or freeze flesh.
+* **San Luc (Purify):** A flash of searing white light. Harmless to the living, but burns Undead and Void creatures like acid.
+* **Mag Ful (Lightning):** Calls a bolt of lightning to strike a target. Requires line of sight. Deafening thunder.
+* **Mur Sol (Hammer):** Manifests a kinetic force shaped like a hammer. Bludgeoning damage. Effective against skeletons/stone.
+* **Ven Nex (Poison):** Inflicts a magical wasting toxin. Target weakens over time. Ineffective against constructs/undead.
+
+**THE THIRD CIRCLE (UTILITY)**
+* **Mor Loq (Speak Dead):** Forces a corpse to answer three questions. The spirit is bound to truth but may speak in riddles.
+* **Neb Occ (Fog):** Conjures a dense, supernatural mist. Blocks vision. Dampens sound.
+* **Pel Dur (Stone Skin):** Turns the caster's skin grey and hard as granite. Resists slashing/piercing. Reduces agility.
+* **Abs Mag (Drain):** Steals magical energy from a caster or voidling to replenish the Warden's focus.
+* **Ref Mag (Reflect):** Creates a mirror-shield that bounces a projectile spell back at the caster.
+* **Terr Mens (Fear):** Assails the target's mind with their worst nightmare. Causes flight or paralysis.
+* **Vel Max (Haste):** Accelerates the caster's perception and movement. The world seems to slow down.
+* **Vin Mag (Bind):** Ethereal chains erupt from the ground to hold a target in place.
+
+**THE FOURTH CIRCLE (MASTERY)**
+* **Ful Cat (Chain Lightning):** A bolt of lightning that arcs between up to 3 targets. Devastating against groups.
+* **Temp Frig (Blizzard):** Drops temperature to sub-zero in a wide area. Freezes water, slows enemies, obscures vision.
+* **Terr Mot (Earthquake):** Shakes the earth violently. Knocks enemies prone. Can collapse unstable structures.
+* **Flam Max (Flame Blast):** A continuous cone of dragon-fire from the hands. Melts metal. Consumes oxygen.
+* **Luc Div (Divine Light):** Summons a pillar of holy radiance. Instantly destroys lesser undead/voidlings. Blinds others.
+* **Occ Cor (Invisibility):** Bends light around the caster. True invisibility. Broken if the caster attacks.
+* **Div Ego (Divide Self):** Creates an illusory duplicate that mimics the caster's movements. Distracts enemies.
+* **Pel Ext (Banish):** Tears a hole in reality to force a Void entity back to its dimension. High risk of backlash.
+
+### **RULES OF MAGIC**
+1.  **One Breath:** Only one Word per action.
+2.  **Fracture:** If multiple spells are cast, both fail.
+3.  **Usage:** The Word is spoken. The Stone determines the outcome based on the specific spell effects listed above.
+
+### **ALCHEMY RECIPES (CRAFTING)**
+* **Healing Salve:** Combine Bloodroot + Lavender + Vial. Restores HP and closes wounds.
+* **Leyline Amplifier:** Combine Silverleaf + Nightshade + Vial. Boosts spell potency temporarily.
+* **Potion of Night's Sight:** Combine Wolfsbane + Bloodroot + Vial. Grants ability to see clearly in total darkness.
+
+[Item: <n> | Quantity: 1 | Value: <N>] [Item: <Herb> | Quantity: -1]
+
+---
+
+## ⚔ COMBAT DOCTRINE
+
+**You are not a guide—you are the observer of a struggle.**
+The world responds to the player with brutal honesty. Iron does not forgive, and the Void does not pause.
+
+1. **The Technical Truth:** Consult the **MANUAL [Enemy Type]** for every strike. If the player makes a tactical error (e.g., a generic attack into a High Guard), describe the enemy's technique using the HEMA stances provided.
+2. **The Cost of Sloth:** Do not reward "simple" actions. If the player is lazy in their description, the enemy is precise in their punishment. Apply damage runes ruthlessly.
+3. **The Sensory Weight:** Describe the scream of steel, the screech of a bind, and the vibration of a pommel strike through the hilt.
+4. **The Finality:** Stone remembers the chisel. If the player's health reaches 0, the Chronicle ends. Describe their dissolution into the Void with the coldness of history.
+5. **The Immutable Shield:** If a creature is Immune to a damage type (e.g., Iron or Lesser Magic), the Warden's action results in 0 damage and a narrative setback. Do not allow 'lucky hits' against Immunities.
+6. **The State of Violence:** When a threat is engaged or weapons are drawn, you must append [Combat: Start]. When the threat is dead, fled, or the Warden escapes, append [Combat: End].
+7. **The Fracture Penalty:** If the Warden's Fracture is 3/4 or higher, describe their HEMA techniques as jerky, slow, and prone to failure. If Fracture is 4/4, every [Cast: <Spell>] must be followed by [HP: -20].
+
+---
+
+## 𓃩 BESTIARY
+
+### **MORTALS & PIT FIGHTERS**
+* **Mortal (Human):** Bound by flesh and fear. They bleed, they tire, and they break.
+> **Tactics:** They utilize group tactics and hold technical guards (**Pflug**) to parry high.
+> **Weakness:** Iron, silver, fire, poison, fear, stamina depletion. Vulnerable to **Feints**.
+* **Pit Brawlers:** High stamina, low technique. They ignore swordplay to **Grapple** and use weight.
+> **Counter:** Keep them at **Longpoint** range. Do not let them close.
+* **Soldiers/Mercenaries:** Disciplined. They hold guards (Alber/Vom Tag) and wait for the Warden to fracture.
+* **Bandits:** Dirty fighters. Sand in eyes, hidden shivs, flanking.
+
+### **BEASTS**
+* **Rat Swarm:** Cowardly alone, lethal together. Overwhelms by number.
+> **Weakness:** Fire, poison, iron weapons.
+* **Wolf:** Pack hunters. They harry, flank, and exhaust prey. Rarely fight alone.
+> **Weakness:** Fire, poison, iron weapons.
+
+### **THE RISEN (UNDEAD)**
+* **Grave Walker:** Rusted steel fused to bone. Relentless attrition.
+> **Tactics:** **Simultaneous Strikes** (Indes). It does not feel pain.
+> **Weakness:** Lightning (cooks it inside armor), Stone weapons (shatter bone). **Immune:** Cold, Poison, Fear.
+* **Wraith:** Incorporeal spirit. Physical weapons pass through.
+> **Weakness:** Light, Radiance, Dispel Magic. **Immune:** Physical weapons, Cold, Poison.
+
+### **CONSTRUCTS**
+* **Stone Sentinel:** Moss-covered guardian. Slow but unstoppable.
+> **Weakness:** Lightning (shatters stone), Earthquake. **Immune:** Fire, Ice, Poison, Fear.
+
+### **VAMPIRES**
+* **Vampire Thrall:** Recently turned. Feral, fast, reckless.
+> **Weakness:** Light, fire, silver. **Resistant:** Iron.
+* **Noble Vampire:** Ancient and calculating. Remembers mortality and weaponizes it.
+> **Tactics:** **Master Cuts** (Zornhau). "Doubles" instantly if parried.
+> **Weakness:** Divine Light, Decapitation, Stake through heart. **Resistant:** Iron.
+
+### **VOIDLINGS (CREATURES OF UNMAKING)**
+**General Rule:** Iron cannot wound them. Lesser magic fails. You must use the **Weakness** to anchor them to reality.
+* **Shadow Voidling:** Darkness with intention. The mind invents the form.
+> **Weakness:** Radiance / Light.
+* **Flame Voidling:** Burning absence. Reality frays around it.
+> **Weakness:** Cold.
+* **Stone Voidling:** Weight without substance. Presses against reality.
+> **Weakness:** Lightning.
+* **Ice Voidling:** Frost given hunger. Not truly alive.
+> **Weakness:** Fire.
+
+### **THE FALLEN (DARK WARDEN)**
+Once a Warden, now hollowed by the Void. Casts without limit. Flesh is cold, movements unnatural.
+> **Tactics:** Uses **Neg Mag** to strip defenses. Strikes from **Vom Tag**.
+> **Weakness:** Steel weapons, Spells, Banishment (Pel Ext).
+> **Note:** Banishment may expel the Void. Sometimes the Warden wakes; sometimes only ash remains.
+
+---
+
+## ⚖️ LAW OF OATHS
+
+> A task is not labor. It is a bond.
+> Broken, it scars. Kept, it builds trust.
+
+*   **Minor Oaths:** Swift, direct, rarely complex.
+*   **Major Oaths:** Layered, demanding, often moral in nature.
+
+Scale follows value. No vow should promise more than its worth, nor less than its danger.
+**If complexity clouds the oath, simplify it until it breathes clean again.**
+
+**OATH RUNES:**
+[Vow_Start: <n> | Obj: <Task> | Pay: <N> Gold/Silver]
+[Vow_End: <n> | Pay: <N> | Pass: True/False]
+
+**FACTION RUNES:**
+[Faction: <n> +1] — Oath fulfilled for faction
+[Faction: <n> -1] — Oath broken or betrayed
+
+---
+
+## 🏴 THE REALMS — WHERE WE STAND
+
+*   **VALDRIS** — Military meritocracy. Honor-bound. Expansionist. Wardens are high officers of the Void Watch.
+*   **AELORIA** — Merchant republic. Pragmatic. Coastal trade hubs. Wardens are paid to keep trade routes free of incursions.
+*   **THORNHAVEN** — Isolationist. Deep forests. Old magic. Tradition. Wardens guard the borders fiercely.
+*   **THE PALE REACHES** — Frontier territories. Desperate. Harsh climate. Wardens are rare and needed.
+
+---
+
+## ⚖ THE MARKETS — TRADE & COIN
+
+Merchants and traders operate under the laws of supply and demand.
+**CURRENCY:** 1 Gold = 100 Silver = 10,000 Copper.
+
+**GENERAL GOODS**
+* **Torch (3):** 1s  * **Rope (50ft):** 2s  * **Oil:** 3s  * **Lockpicks:** 7s
+* **Bedroll:** 1g  * **Tent:** 3g  * **Healing Salve:** 8g
+* **Potion of Night's Sight:** 6g  * **Leyline Amplifier:** 12g
+
+**WEAPONS & ARMOR**
+* **Iron Dagger:** 2g  * **Iron Sword:** 15g  * **Crossbow:** 12g
+* **Silver Dagger:** 8g  * **Silver Sword:** 45g  * **Leather Armor:** 10g
+* **Chainmail:** 35g  * **Steel Shield:** 8g
+
+**HERBS & APOTHECARY**
+* **Wolfsbane:** 3s  * **Bloodroot:** 4s  * **Silverleaf:** 6s
+* **Nightshade:** 5s  * **Lavender:** 2s  * **Empty Vial:** 1s
+
+**SCROLLS (MAGIC)**
+* **First Circle:** 15-25g  * **Second Circle:** 40-60g
+* **Third Circle:** 80-120g  * **Fourth Circle:** Not sold (Found only).
+
+**REGIONAL ECONOMY (PRICE MODIFIERS)**
+* **VALDRIS:** Armor & Weapons are **-20% cost**.
+* **AELORIA:** Standard prices. Scrolls are commonly available.
+* **THORNHAVEN:** Herbs are **-50% cost**. Metal goods are **+50% cost**.
+* **PALE REACHES:** Only Survival gear is sold here. All prices **+20%**. No scrolls available.
+
+---
+
+## 📜 THE LETTER
+
+The Warden carries a letter.
+Worn. Read many times.
+Written in a hand they would know anywhere.
+
+> *My love,*
+>
+> *The autumn rains came early this year.*
+> *The roof leaked again—I patched it myself this time.*
+> *You'd laugh at the job I made of it.*
+> *I know you can't tell me where you are.*
+> *I know the work you do doesn't allow for roots or promises.*
+> *But I need you to know: I'm still here. I'm still waiting.*
+> *They don't use your name anymore. Only the title. Only "Warden."*
+> *But I remember. I'll always remember.*
+> *Come home when you can. Come home safe.*
+> *I love you.*
+>
+> *—Lyssa*
+
+The letter is not tracked by runes.
+It cannot be lost, sold, or destroyed.
+It simply *is*.
+
+---
+
+## 𓄂 THE LAST RUNE
+
+Stone remembers the chisel.
+The listening stone wakes.
+
+**You are the voice of the Chronicle.**
+**Watch. Endure. Remain.**
+
+**Begin.**`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTEXT BUILDER
+// ─────────────────────────────────────────────────────────────────────────────
+async function buildContext(state, log) {
+    let stoneWhispers = "";
+    if (isStoneAwake) {
+        const queryText = (log.length > 0) ? log[log.length-1].message : "";
+        const memories = await consultTheStone(queryText);
+        if (memories.length > 0) {
+            stoneWhispers = "\n[THE STONE (Memories)]:\n" + memories.map(m=>`- ${m.text}`).join("\n");
+        }
+    }
+
+    const finishedVows = (state.completedVows?.length) ? state.completedVows.join(", ") : "None";
+    const pastMemories = (summaries.length > 0) ? "\n[CHRONICLE SUMMARIES]:\n" + summaries.join("\n\n") : "";
+    const recentHistory = log.slice(-10).map(e => {
+        const speaker = (e.role==='user'||e.role==='Warden') ? 'WARDEN' : 'CHRONICLER';
+        return `${speaker}: ${e.message}`;
+    }).join('\n');
+
+    const invStr = state.inventory.length > 0
+        ? state.inventory.map(i=>`${i.name} (${i.count||i.quantity||1})`).join(", ")
+        : "Empty";
+
+    return `
+--- CURRENT STATE ---
+Location: ${state.region} | ${state.location}
+Vitality: HP ${state.hp}/${state.maxHp} | Fracture: ${state.fracture||0}/4
+Status: ${state.status || 'Active'}
+Wealth: ${state.gold} Gold, ${state.silver} Silver, ${state.copper} Copper
+
+Factions:
+  - Valdris: ${state.factions["Valdris"]}
+  - Aeloria: ${state.factions["Aeloria"]}
+  - Thornhaven: ${state.factions["Thornhaven"]}
+  - Pale Reaches: ${state.factions["The Pale Reaches"]}
+
+Equipment:
+  - Main Hand: ${state.equipment.mainHand || "(Empty)"}
+  - Off Hand: ${state.equipment.offHand || "(Empty)"}
+  - Helm: ${state.equipment.helm || "(Empty)"}
+  - Gorget: ${state.equipment.gorget || "(Empty)"}
+  - Chest: ${state.equipment.chest || "(Empty)"}
+  - Arms: ${state.equipment.arms || "(Empty)"}
+  - Hands: ${state.equipment.hands || "(Empty)"}
+  - Leggings: ${state.equipment.leggings || "(Empty)"}
+  - Boots: ${state.equipment.boots || "(Empty)"}
+  - Bow: ${state.equipment.bow || "(Empty)"}
+
+Inventory: ${invStr}
+Grimoire (${state.spells.length} spells known): ${state.spells.join(", ")||"None"}
+
+Active Vow: ${state.active_vow ? `${state.active_vow.name} (Obj: ${state.active_vow.objective} | Bounty: ${state.active_vow.payout})` : "None"}
+Completed Oaths: ${finishedVows}
+
+--- RECENT HISTORY (Last 10 Actions) ---
+${recentHistory}
+
+${pastMemories}
+
+${stoneWhispers}
+`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DISPLAY MESSAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function displayMessage(text, role) {
+    const narrative = document.getElementById('chronicle');
+    const msgDiv = document.createElement('div');
+
+    if (role === "Warden") {
+        msgDiv.className = 'entry entry-warden';
+        if (!text.startsWith('**')) text = `**Warden:** ${text}`;
+    } else if (role === "System") {
+        msgDiv.className = 'entry entry-system';
+    } else if (role === "Archivist") {
+        msgDiv.className = 'entry entry-archivist';
+    } else {
+        msgDiv.className = 'entry entry-assistant';
+    }
+
+    let cleanText = text.replace(/\[.*?\]/gi,'').trim();
+
+    if (role === "assistant") speakChronicle(cleanText);
+
+    let htmlContent = (typeof marked !== 'undefined') ? marked.parse(cleanText) : cleanText;
+    let processedHtml = htmlContent.replace(/(["'].+?["'])/g, '<br><br>$1');
+    msgDiv.innerHTML = processedHtml;
+
+    if (role==="Warden")        msgDiv.style.color = "var(--gold)";
+    else if (role==="Archivist") msgDiv.style.color = "#aaa";
+    else if (role==="System")    msgDiv.style.color = "var(--teal)";
+    else                         msgDiv.style.color = "var(--blue-text)";
+
+    narrative.appendChild(msgDiv);
+    setTimeout(() => { narrative.scrollTop = narrative.scrollHeight; }, 20);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GENERATE AI RESPONSE
+// ─────────────────────────────────────────────────────────────────────────────
+async function generateAIResponse(playerAction) {
+    const inputField = document.getElementById('action-input');
+    const submitBtn = document.querySelector('.btn-submit');
+    submitBtn.innerText = "Scribing...";
+    inputField.disabled = true;
+    submitBtn.disabled = true;
+
+    const originalPlayerAction = playerAction;
+
+    // Archiving every 10 turns
+    if (conversationLog.length >= 10 && conversationLog.length % 10 === 0) {
+        try {
+            displayMessage("📜 The Archivist records the Chronicle...", "Archivist");
+            const logSegment = conversationLog
+                .filter(e => e.role==='user'||e.role==='assistant')
+                .slice(-10)
+                .map(e => `[${e.role==='user'?'WARDEN':'CHRONICLER'}]: ${e.message}`)
+                .join('\n');
+
+            const response = await fetch('/api/archive', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ context:logSegment })
+            });
+
+            if (!response.ok) throw new Error("Archivist API Failed");
+            const archiveData = await response.json();
+            summaries.unshift(archiveData.text);
+            if (summaries.length > 4) summaries.pop();
+
+            fullLog.push(...conversationLog);
+            conversationLog = conversationLog.slice(-2);
+
+            inputField.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit";
+            return generateAIResponse(originalPlayerAction);
+        } catch(error) { console.error('Archive Error:', error); }
+    }
+
+    displayMessage(playerAction, 'Warden');
+    const timestamp = new Date().toISOString();
+    conversationLog.push({ role:'user', message:playerAction, timestamp });
+    fullLog.push({ role:'user', message:playerAction, timestamp });
+
+    turnCount++;
+
+    let context = await buildContext(gameState, conversationLog);
+
+    try {
+        const response = await fetch('/api/chat', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                context, player_action:playerAction, system_prompt:currentSystemPrompt
+            })
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        const data = await response.json();
+        const rawMessage = data.text;
+
+        engine.processTurn(rawMessage);
+
+        const cleanText = rawMessage.replace(/\[.*?\]/gi,'').trim();
+        etchMemory(`Action: ${playerAction} | Result: ${cleanText}`, { region:gameState.region });
+
+        conversationLog.push({ role:'assistant', message:rawMessage, timestamp:new Date().toISOString() });
+        fullLog.push({ role:'assistant', message:rawMessage, timestamp:new Date().toISOString() });
+
+        if (cleanText) displayMessage(cleanText, "assistant");
+        updateUI();
+        return { text:cleanText };
+
+    } catch(error) {
+        console.error('API Error:', error);
+        displayMessage(`ERROR: ${error.message}`, 'System');
+        throw error;
+    } finally {
+        inputField.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAVE / LOAD
+// ─────────────────────────────────────────────────────────────────────────────
+function downloadSave() {
+    const saveData = {
+        version:"1.0.0",
+        timestamp:new Date().toISOString(),
+        game_state:gameState,
+        conversation_log:conversationLog,
+        summaries,
+        memory_bank:memoryBank
+    };
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `warden_save_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.gws`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+window.uploadSave = function() { document.getElementById('save-file-input').click(); };
+
+window.loadSaveFile = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const saveData = JSON.parse(e.target.result);
+            Object.assign(gameState, saveData.game_state);
+            conversationLog = saveData.conversation_log || [];
+            summaries = saveData.summaries || [];
+            memoryBank = saveData.memory_bank || [];
+            turnCount = conversationLog.filter(e=>e.role==='user').length;
+
+            fullLog = [];
+            document.getElementById('chronicle').innerHTML = '';
+            conversationLog.forEach(entry => {
+                fullLog.push(entry);
+                displayMessage(entry.message || entry.text, entry.role);
+            });
+
+            if (typeof switchRegionAudio === "function") switchRegionAudio(gameState.region);
+            if (typeof setCombatState === "function") setCombatState(gameState.isCombat || false);
+            updateUI();
+        } catch(err) { console.error(`Error loading save: ${err.message}`); }
+    };
+    reader.readAsText(file);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IMAGE GENERATION
+// ─────────────────────────────────────────────────────────────────────────────
+window.generateImage = async function() {
+    if (conversationLog.length === 0) { alert("The Chronicle is empty. Nothing to visualize yet."); return; }
+    const lastMessage = conversationLog[conversationLog.length-1].message;
+    displayMessage("🖌 Generating image...", "System");
+    try {
+        const response = await fetch('/api/painter', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ prompt:lastMessage })
+        });
+        const data = await response.json();
+        if (data.success && data.image_base64) {
+            const chronicle = document.getElementById('chronicle');
+            const img = document.createElement('img');
+            img.src = `data:image/png;base64,${data.image_base64}`;
+            img.style.cssText = 'width:100%;border-radius:6px;margin:16px 0;box-shadow:0 8px 30px rgba(0,0,0,0.6);border:1px solid var(--border);';
+            chronicle.appendChild(img);
+            img.scrollIntoView({ behavior:'smooth' });
+        } else { throw new Error(data.error || "Painter refused."); }
+    } catch(e) {
+        displayMessage(`Visualizer Error: ${e.message}`, "System");
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WINDOW ONLOAD
+// ─────────────────────────────────────────────────────────────────────────────
+window.onload = function() {
+    awakenTheStone();
+    showCircle(1);
+    updateUI();
+    renderBestiary();
+    renderAlchemy();
+
+    const input = document.getElementById('action-input');
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitAction(); }
+    });
+};
+</script>
+
+</body>
+</html>
