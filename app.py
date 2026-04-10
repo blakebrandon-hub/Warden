@@ -62,7 +62,7 @@ def serve_greywake_static(filename):
 
 # Narrator Model
 # "claude-sonnet-4-6" | "gemini-3.1-pro-preview" | "gpt-5.4"
-NARRATOR_MODEL = os.environ.get("NARRATOR_MODEL", "claude-sonnet-4-6")
+NARRATOR_MODEL = os.environ.get("NARRATOR_MODEL", "gemini-3.1-flash-lite-preview")
 
 # Image Generation Model
 # Options: "imagen-4.0-fast-generate-001" | "gpt-image-1.5"
